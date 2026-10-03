@@ -1,0 +1,178 @@
+<resources>
+    <string name="app_name">أورا</string>
+    <string name="app_tagline">حيث التواصل يعبر عن هويتك الحقيقية</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title_1">دوائر خاصة بخصوصية مطلقة</string>
+    <string name="onboarding_desc_1">شارك لحظاتك حصرياً مع دوائرك الخاصة دون كشف قائمة الأعضاء لأي شخص.</string>
+    <string name="onboarding_title_2">تنقل بسلاسة عبر الطبقات الاجتماعية</string>
+    <string name="onboarding_desc_2">بدّل بين السياق الشخصي، المهني، الإبداعي، والتقني بحساب واحد وبكل انسيابية.</string>
+    <string name="onboarding_title_3">خلاصة هادئة وملخص ذكي</string>
+    <string name="onboarding_desc_3">تخلص من التمرير اللانهائي مع النمط الهادئ وملخص الاستدراك الذكي لما فاتك.</string>
+    <string name="get_started">ابدأ الآن</string>
+    <string name="already_have_account">لديك حساب بالفعل؟ تسجيل الدخول</string>
+    <string name="sign_in">تسجيل الدخول</string>
+    <string name="create_account">إنشاء حساب جديد</string>
+    <string name="continue_with_google">المتابعة باستخدام Google</string>
+    <string name="or_continue_with">أو المتابعة عبر البريد الإلكتروني</string>
+    <string name="email_label">البريد الإلكتروني</string>
+    <string name="password_label">كلمة المرور</string>
+    <string name="forgot_password">نسيت كلمة المرور؟</string>
+    <string name="full_name">الاسم الكامل</string>
+    <string name="username">اسم المستخدم</string>
+    <string name="bio_hint">شارك العالم نبذة عنك وعن اهتماماتك...</string>
+    <string name="interests_title">حدد اهتماماتك</string>
+    <string name="interests_desc">نخصص خلاصتك الأولى وتوصيات المجتمعات بناءً على شغفك.</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">الرئيسية</string>
+    <string name="nav_discover">استكشاف</string>
+    <string name="nav_create">نشر</string>
+    <string name="nav_clips">مقاطع</string>
+    <string name="nav_inbox">الرسائل</string>
+    <string name="nav_profile">الملف الشخصي</string>
+
+    <!-- Feed Tabs & Exclusive Features -->
+    <string name="feed_for_you">لك</string>
+    <string name="feed_following">المتابَعون</string>
+    <string name="feed_trending">الشائع</string>
+    <string name="feed_circles">الدوائر</string>
+    <string name="social_layer_personal">شخصي</string>
+    <string name="social_layer_professional">مهني</string>
+    <string name="social_layer_creative">إبداعي</string>
+    <string name="social_layer_tech">تقنية وألعاب</string>
+    <string name="quiet_feed_mode">النمط الهادئ</string>
+    <string name="quiet_feed_active_hint">تم إخفاء مقاييس التفاعل لتجربة قراءة مريحة وواعية</string>
+    <string name="mood_filter">المزاج</string>
+    <string name="mood_relax">استرخاء</string>
+    <string name="mood_discover">اكتشاف</string>
+    <string name="mood_learn">معرفة</string>
+    <string name="mood_laugh">مرح</string>
+    <string name="mood_connect">تواصل</string>
+    <string name="mood_focus">تركيز</string>
+    <string name="smart_catch_up">الاستدراك الذكي</string>
+    <string name="catch_up_title">أثناء غيابك</string>
+    <string name="catch_up_subtitle">ملخص منتقى لأهم النقاشات والتفاعلات والتحديثات في دوائرك.</string>
+    <string name="catch_up_key_posts">أهم النقاشات</string>
+    <string name="catch_up_missed_circles">تحديثات الدوائر</string>
+    <string name="catch_up_direct_messages">الرسائل الخاصة</string>
+
+    <!-- Post Component & Actions -->
+    <string name="like">إعجاب</string>
+    <string name="comment">تعليق</string>
+    <string name="repost">إعادة نشر</string>
+    <string name="share">مشاركة</string>
+    <string name="bookmark">حفظ</string>
+    <string name="bookmarked">تم الحفظ</string>
+    <string name="comments_count">%1$d تعليق</string>
+    <string name="likes_count">%1$d إعجاب</string>
+    <string name="reposts_count">%1$d إعادة نشر</string>
+    <string name="collaborator_with">بالتعاون مع</string>
+    <string name="time_limited_badge">ينتهي خلال %1$s</string>
+    <string name="expires_24h">24 ساعة</string>
+    <string name="expires_3d">3 أيام</string>
+    <string name="expires_7d">7 أيام</string>
+    <string name="circle_badge">دائرة: %1$s</string>
+    <string name="follow">متابعة</string>
+    <string name="following">تتابعه</string>
+    <string name="view_discussion_room">انضم لغرفة النقاش</string>
+    <string name="post_options">خيارات المنشور</string>
+    <string name="not_interested">غير مهتم</string>
+    <string name="mute_user">كتم منشورات %1$s</string>
+    <string name="block_user">حظر %1$s</string>
+    <string name="report_post">إبلاغ</string>
+    <string name="copy_link">نسخ الرابط</string>
+    <string name="link_copied">تم نسخ الرابط إلى الحافظة</string>
+
+    <!-- Create Post & Editor -->
+    <string name="new_post">إنشاء منشور</string>
+    <string name="publish">نشر</string>
+    <string name="post_placeholder">ما الذي يلهمك اليوم؟</string>
+    <string name="audience_label">الجمهور</string>
+    <string name="audience_public">عام</string>
+    <string name="audience_followers">المتابعون فقط</string>
+    <string name="audience_circle">تحديد دائرة خاصة</string>
+    <string name="post_lifetime">مدة بقاء المنشور</string>
+    <string name="lifetime_permanent">دائم</string>
+    <string name="collaborative_post">منشور تشاركي</string>
+    <string name="add_collaborator">دعوة شريك محتوى</string>
+    <string name="allow_comments">السماح بالتعليقات</string>
+    <string name="hide_metrics">إخفاء عدد الإعجابات</string>
+    <string name="filter_original">الأصلي</string>
+    <string name="filter_warm">عنبر</string>
+    <string name="filter_cool">نورديك</string>
+    <string name="filter_noir">أوبسيديان</string>
+    <string name="filter_vibrant">نابض</string>
+
+    <!-- Stories -->
+    <string name="your_story">قصتك</string>
+    <string name="story_reply_placeholder">أرسل رسالة...</string>
+    <string name="story_viewers">المشاهدات</string>
+
+    <!-- Clips -->
+    <string name="clips_title">مقاطع أورا</string>
+    <string name="original_audio">الصوت الأصلي</string>
+    <string name="double_tap_to_heart">اضغط مرتين للإعجاب</string>
+
+    <!-- Discover & Communities -->
+    <string name="search_placeholder">ابحث عن مستخدمين، مواضيع، مجتمعات...</string>
+    <string name="trending_topics">الأكثر رواجاً في أورا</string>
+    <string name="suggested_creators">صناع محتوى مقترحون</string>
+    <string name="featured_communities">مجتمعات نشطة</string>
+    <string name="join_community">انضمام</string>
+    <string name="joined_community">منضم</string>
+    <string name="members_count">%1$s عضو</string>
+
+    <!-- Chat & Messaging -->
+    <string name="messages_title">المحادثات</string>
+    <string name="direct_chats">مباشرة</string>
+    <string name="circles_chats">الدوائر</string>
+    <string name="type_message_hint">اكتب رسالة...</string>
+    <string name="voice_message">رسالة صوتية</string>
+    <string name="recording">جاري التسجيل %1$s</string>
+    <string name="online_now">نشط الآن</string>
+    <string name="last_seen">نشط منذ %1$s</string>
+    <string name="typing_indicator">%1$s يكتب الآن...</string>
+    <string name="status_delivered">تم التسليم</string>
+    <string name="status_read">تمت القراءة</string>
+
+    <!-- Profile -->
+    <string name="edit_profile">تعديل الملف</string>
+    <string name="share_profile">مشاركة الملف</string>
+    <string name="posts_tab">المنشورات</string>
+    <string name="media_tab">الوسائط</string>
+    <string name="clips_tab">المقاطع</string>
+    <string name="saved_tab">المحفوظات</string>
+    <string name="followers_stat">المتابعون</string>
+    <string name="following_stat">تتابعهم</string>
+    <string name="posts_stat">المنشورات</string>
+    <string name="identity_verified">هوية موثقة</string>
+
+    <!-- Settings & Privacy -->
+    <string name="settings_title">الإعدادات والخصوصية</string>
+    <string name="account_settings">الحساب</string>
+    <string name="privacy_safety">الخصوصية والأمان</string>
+    <string name="security_center">مركز الأمان</string>
+    <string name="notifications_settings">الإشعارات</string>
+    <string name="appearance_settings">المظهر والسمة</string>
+    <string name="language_settings">اللغة</string>
+    <string name="data_saver">نمط توفير البيانات</string>
+    <string name="data_saver_desc">تقليل دقة الصور وإيقاف التشغيل التلقائي عند استخدام البيانات</string>
+    <string name="theme_system">تلقائي حسب النظام</string>
+    <string name="theme_light">مظهر فاتح أنيق</string>
+    <string name="theme_dark">أوبسيديان داكن فخم</string>
+    <string name="logout">تسجيل الخروج</string>
+    <string name="delete_account">حذف الحساب نهائياً</string>
+
+    <!-- States & Feedback -->
+    <string name="loading">جاري التحميل...</string>
+    <string name="empty_feed_title">خلاصتك هادئة الآن</string>
+    <string name="empty_feed_desc">استكشف صناع المحتوى والمواضيع الملهمة لتشكيل عالمك في أورا.</string>
+    <string name="empty_bookmarks_title">لا توجد عناصر محفوظة</string>
+    <string name="empty_bookmarks_desc">احفظ المنشورات الملهمة للرجوع إليها في أي وقت بأرشيفك الخاص.</string>
+    <string name="empty_messages_title">ابدأ محادثة جديدة</string>
+    <string name="empty_messages_desc">أرسل رسائل نصية وتسجيلات صوتية ووسائط بأعلى معايير الخصوصية.</string>
+    <string name="offline_banner">تعمل الآن دون اتصال بالإنترنت. ستتم مزامنة التغييرات فور عودة الاتصال.</string>
+    <string name="retry">إعادة المحاولة</string>
+    <string name="action_success">تمت العملية بنجاح</string>
+</resources>

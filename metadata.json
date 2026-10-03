@@ -1,0 +1,6 @@
+{
+  "name": "Aura",
+  "description": "A modern, luxury social network featuring private Circles, Social Layers, Mood Feed, Quiet Mode, Stories, Clips, and high-fidelity messaging.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

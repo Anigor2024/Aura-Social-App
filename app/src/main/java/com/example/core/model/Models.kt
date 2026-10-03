@@ -1,0 +1,136 @@
+package com.example.core.model
+
+enum class SocialLayer(val id: String, val titleResKey: String) {
+    PERSONAL("personal", "social_layer_personal"),
+    PROFESSIONAL("professional", "social_layer_professional"),
+    CREATIVE("creative", "social_layer_creative"),
+    TECH("tech", "social_layer_tech")
+}
+
+enum class MoodType(val id: String, val titleResKey: String) {
+    ALL("all", "feed_for_you"),
+    RELAX("relax", "mood_relax"),
+    DISCOVER("discover", "mood_discover"),
+    LEARN("learn", "mood_learn"),
+    LAUGH("laugh", "mood_laugh"),
+    CONNECT("connect", "mood_connect"),
+    FOCUS("focus", "mood_focus")
+}
+
+data class AuraCircle(
+    val id: String,
+    val name: String,
+    val description: String,
+    val colorHex: Long,
+    val memberCount: Int
+)
+
+data class User(
+    val id: String,
+    val username: String,
+    val displayName: String,
+    val avatarUrl: String,
+    val bio: String,
+    val isVerified: Boolean = false,
+    val followersCount: Int = 0,
+    val followingCount: Int = 0,
+    val postsCount: Int = 0,
+    val isFollowing: Boolean = false,
+    val activeSocialLayer: SocialLayer = SocialLayer.PERSONAL
+)
+
+enum class PostLifetime(val id: String, val hours: Int) {
+    PERMANENT("permanent", -1),
+    HOURS_24("24h", 24),
+    DAYS_3("3d", 72),
+    DAYS_7("7d", 168)
+}
+
+data class Post(
+    val id: String,
+    val author: User,
+    val text: String,
+    val mediaUrls: List<String> = emptyList(),
+    val timestampFormatted: String,
+    val likesCount: Int,
+    val commentsCount: Int,
+    val repostsCount: Int,
+    val isLiked: Boolean = false,
+    val isBookmarked: Boolean = false,
+    val circle: AuraCircle? = null,
+    val socialLayer: SocialLayer = SocialLayer.PERSONAL,
+    val mood: MoodType = MoodType.DISCOVER,
+    val lifetime: PostLifetime = PostLifetime.PERMANENT,
+    val collaborator: User? = null,
+    val discussionRoomId: String? = null,
+    val isQuietModeEligible: Boolean = true
+)
+
+data class Story(
+    val id: String,
+    val author: User,
+    val mediaUrl: String,
+    val timestampAgo: String,
+    val isViewed: Boolean = false,
+    val caption: String = ""
+)
+
+data class Clip(
+    val id: String,
+    val author: User,
+    val videoUrl: String,
+    val thumbnailUrl: String,
+    val caption: String,
+    val audioTrackTitle: String,
+    val likesCount: Int,
+    val commentsCount: Int,
+    val isLiked: Boolean = false,
+    val isSaved: Boolean = false
+)
+
+enum class MessageStatus {
+    SENDING, SENT, DELIVERED, READ
+}
+
+data class DirectMessage(
+    val id: String,
+    val conversationId: String,
+    val senderId: String,
+    val text: String,
+    val timestampFormatted: String,
+    val isMine: Boolean,
+    val voiceDurationSeconds: Int? = null,
+    val voiceWaveform: List<Float>? = null,
+    val mediaUrl: String? = null,
+    val status: MessageStatus = MessageStatus.READ
+)
+
+data class Conversation(
+    val id: String,
+    val participant: User,
+    val lastMessage: String,
+    val lastTimestamp: String,
+    val unreadCount: Int = 0,
+    val isCircleChat: Boolean = false,
+    val circleName: String? = null,
+    val isOnline: Boolean = false
+)
+
+data class Community(
+    val id: String,
+    val name: String,
+    val description: String,
+    val avatarUrl: String,
+    val coverUrl: String,
+    val membersCountFormatted: String,
+    val isJoined: Boolean = false,
+    val category: String,
+    val rules: List<String> = emptyList()
+)
+
+data class CatchUpSummary(
+    val missedPostsCount: Int,
+    val topDiscussions: List<Post>,
+    val circleUpdatesCount: Int,
+    val unreadMessagesCount: Int
+)

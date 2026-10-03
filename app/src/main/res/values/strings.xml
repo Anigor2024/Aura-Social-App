@@ -1,0 +1,178 @@
+<resources>
+    <string name="app_name">Aura</string>
+    <string name="app_tagline">Where connection feels authentic</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title_1">Curated Circles, Real Privacy</string>
+    <string name="onboarding_desc_1">Share moments exclusively with specific Circles without revealing member lists.</string>
+    <string name="onboarding_title_2">Switch Contexts with Social Layers</string>
+    <string name="onboarding_desc_2">Transition seamlessly between Personal, Professional, Creative, and Tech spaces within one profile.</string>
+    <string name="onboarding_title_3">Mindful Feed &amp; Smart Catch-Up</string>
+    <string name="onboarding_desc_3">Escape doom-scrolling with Quiet Feed and concise AI-powered Catch-Up summaries.</string>
+    <string name="get_started">Get Started</string>
+    <string name="already_have_account">Already have an account? Sign In</string>
+    <string name="sign_in">Sign In</string>
+    <string name="create_account">Create Account</string>
+    <string name="continue_with_google">Continue with Google</string>
+    <string name="or_continue_with">or continue with email</string>
+    <string name="email_label">Email Address</string>
+    <string name="password_label">Password</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="full_name">Full Name</string>
+    <string name="username">Username</string>
+    <string name="bio_hint">Tell the world your story...</string>
+    <string name="interests_title">Select your interests</string>
+    <string name="interests_desc">We personalize your initial feed and community recommendations.</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_discover">Discover</string>
+    <string name="nav_create">Create</string>
+    <string name="nav_clips">Clips</string>
+    <string name="nav_inbox">Inbox</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Feed Tabs & Exclusive Features -->
+    <string name="feed_for_you">For You</string>
+    <string name="feed_following">Following</string>
+    <string name="feed_trending">Trending</string>
+    <string name="feed_circles">Circles</string>
+    <string name="social_layer_personal">Personal</string>
+    <string name="social_layer_professional">Professional</string>
+    <string name="social_layer_creative">Creative</string>
+    <string name="social_layer_tech">Tech &amp; Gaming</string>
+    <string name="quiet_feed_mode">Quiet Feed</string>
+    <string name="quiet_feed_active_hint">Metrics hidden for a mindful experience</string>
+    <string name="mood_filter">Mood</string>
+    <string name="mood_relax">Relax</string>
+    <string name="mood_discover">Discover</string>
+    <string name="mood_learn">Learn</string>
+    <string name="mood_laugh">Laugh</string>
+    <string name="mood_connect">Connect</string>
+    <string name="mood_focus">Focus</string>
+    <string name="smart_catch_up">Smart Catch-Up</string>
+    <string name="catch_up_title">While you were away</string>
+    <string name="catch_up_subtitle">A curated snapshot of key interactions and trending conversations.</string>
+    <string name="catch_up_key_posts">Key Discussions</string>
+    <string name="catch_up_missed_circles">Circle Updates</string>
+    <string name="catch_up_direct_messages">Direct Messages</string>
+
+    <!-- Post Component & Actions -->
+    <string name="like">Like</string>
+    <string name="comment">Comment</string>
+    <string name="repost">Repost</string>
+    <string name="share">Share</string>
+    <string name="bookmark">Bookmark</string>
+    <string name="bookmarked">Saved</string>
+    <string name="comments_count">%1$d Comments</string>
+    <string name="likes_count">%1$d Likes</string>
+    <string name="reposts_count">%1$d Reposts</string>
+    <string name="collaborator_with">with</string>
+    <string name="time_limited_badge">Expires in %1$s</string>
+    <string name="expires_24h">24h</string>
+    <string name="expires_3d">3 days</string>
+    <string name="expires_7d">7 days</string>
+    <string name="circle_badge">Circle: %1$s</string>
+    <string name="follow">Follow</string>
+    <string name="following">Following</string>
+    <string name="view_discussion_room">Join Discussion Room</string>
+    <string name="post_options">Post options</string>
+    <string name="not_interested">Not Interested</string>
+    <string name="mute_user">Mute %1$s</string>
+    <string name="block_user">Block %1$s</string>
+    <string name="report_post">Report</string>
+    <string name="copy_link">Copy Link</string>
+    <string name="link_copied">Link copied to clipboard</string>
+
+    <!-- Create Post & Editor -->
+    <string name="new_post">Create Post</string>
+    <string name="publish">Publish</string>
+    <string name="post_placeholder">What\'s shaping your world?</string>
+    <string name="audience_label">Audience</string>
+    <string name="audience_public">Public</string>
+    <string name="audience_followers">Followers Only</string>
+    <string name="audience_circle">Select Circle</string>
+    <string name="post_lifetime">Post Lifetime</string>
+    <string name="lifetime_permanent">Permanent</string>
+    <string name="collaborative_post">Collaborative Post</string>
+    <string name="add_collaborator">Invite Collaborator</string>
+    <string name="allow_comments">Allow Comments</string>
+    <string name="hide_metrics">Hide Like Counts</string>
+    <string name="filter_original">Original</string>
+    <string name="filter_warm">Amber</string>
+    <string name="filter_cool">Nordic</string>
+    <string name="filter_noir">Obsidian</string>
+    <string name="filter_vibrant">Vivid</string>
+
+    <!-- Stories -->
+    <string name="your_story">Your Story</string>
+    <string name="story_reply_placeholder">Send a message...</string>
+    <string name="story_viewers">Viewers</string>
+
+    <!-- Clips -->
+    <string name="clips_title">Aura Clips</string>
+    <string name="original_audio">Original Audio</string>
+    <string name="double_tap_to_heart">Double tap to like</string>
+
+    <!-- Discover & Communities -->
+    <string name="search_placeholder">Search people, topics, communities...</string>
+    <string name="trending_topics">Trending on Aura</string>
+    <string name="suggested_creators">Suggested Creators</string>
+    <string name="featured_communities">Active Communities</string>
+    <string name="join_community">Join</string>
+    <string name="joined_community">Joined</string>
+    <string name="members_count">%1$s members</string>
+
+    <!-- Chat & Messaging -->
+    <string name="messages_title">Messages</string>
+    <string name="direct_chats">Direct</string>
+    <string name="circles_chats">Circles</string>
+    <string name="type_message_hint">Type a message...</string>
+    <string name="voice_message">Voice Message</string>
+    <string name="recording">Recording %1$s</string>
+    <string name="online_now">Active now</string>
+    <string name="last_seen">Active %1$s</string>
+    <string name="typing_indicator">%1$s is typing...</string>
+    <string name="status_delivered">Delivered</string>
+    <string name="status_read">Read</string>
+
+    <!-- Profile -->
+    <string name="edit_profile">Edit Profile</string>
+    <string name="share_profile">Share Profile</string>
+    <string name="posts_tab">Posts</string>
+    <string name="media_tab">Media</string>
+    <string name="clips_tab">Clips</string>
+    <string name="saved_tab">Bookmarks</string>
+    <string name="followers_stat">Followers</string>
+    <string name="following_stat">Following</string>
+    <string name="posts_stat">Posts</string>
+    <string name="identity_verified">Verified Identity</string>
+
+    <!-- Settings & Privacy -->
+    <string name="settings_title">Settings &amp; Privacy</string>
+    <string name="account_settings">Account</string>
+    <string name="privacy_safety">Privacy &amp; Safety</string>
+    <string name="security_center">Security Center</string>
+    <string name="notifications_settings">Notifications</string>
+    <string name="appearance_settings">Appearance &amp; Theme</string>
+    <string name="language_settings">Language</string>
+    <string name="data_saver">Data Saver Mode</string>
+    <string name="data_saver_desc">Reduce image quality and disable autoplay on mobile data</string>
+    <string name="theme_system">System Default</string>
+    <string name="theme_light">Light Luxury</string>
+    <string name="theme_dark">Dark Obsidian</string>
+    <string name="logout">Log Out</string>
+    <string name="delete_account">Delete Account</string>
+
+    <!-- States & Feedback -->
+    <string name="loading">Loading...</string>
+    <string name="empty_feed_title">Your Feed is Quiet</string>
+    <string name="empty_feed_desc">Explore trending creators and topics to shape your personalized Aura.</string>
+    <string name="empty_bookmarks_title">No Saved Posts</string>
+    <string name="empty_bookmarks_desc">Save inspiring posts to revisit them anytime in your private archive.</string>
+    <string name="empty_messages_title">Start a Conversation</string>
+    <string name="empty_messages_desc">Send messages, voice notes, and media with end-to-end privacy.</string>
+    <string name="offline_banner">Working in offline mode. Changes will sync when reconnected.</string>
+    <string name="retry">Try Again</string>
+    <string name="action_success">Completed successfully</string>
+</resources>
