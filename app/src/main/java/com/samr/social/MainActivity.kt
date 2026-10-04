@@ -41,6 +41,7 @@ import com.samr.social.features.home.SmartCatchUpContent
 import com.samr.social.features.language.LanguageSelectScreen
 import com.samr.social.features.majlis.MajlisScreen
 import com.samr.social.features.profile.ProfileScreen
+import com.samr.social.features.safety.SafetyCenterScreen
 import com.samr.social.features.settings.SettingsScreen
 import com.samr.social.features.studio.CreatorStudioScreen
 import com.samr.social.ui.theme.SamrTheme
@@ -89,6 +90,7 @@ fun SamrApp(
     var isViewingActivity by remember { mutableStateOf(false) }
     var isViewingStudio by remember { mutableStateOf(false) }
     var isViewingMajlis by remember { mutableStateOf(false) }
+    var isViewingSafetyCenter by remember { mutableStateOf(false) }
     var showCatchUpDialog by remember { mutableStateOf(false) }
 
     val activeLayer by repository.activeLayer.collectAsState()
@@ -140,6 +142,14 @@ fun SamrApp(
             )
         }
 
+        isViewingSafetyCenter -> {
+            BackHandler { isViewingSafetyCenter = false }
+            SafetyCenterScreen(
+                repository = repository,
+                onBack = { isViewingSafetyCenter = false }
+            )
+        }
+
         isViewingSettings -> {
             BackHandler { isViewingSettings = false }
             SettingsScreen(
@@ -157,6 +167,10 @@ fun SamrApp(
                 },
                 onOpenLanguageSelect = {
                     isSelectingLanguage = true
+                },
+                onOpenSafetyCenter = {
+                    isViewingSettings = false
+                    isViewingSafetyCenter = true
                 }
             )
         }
