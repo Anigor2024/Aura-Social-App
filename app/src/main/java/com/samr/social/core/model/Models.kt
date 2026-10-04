@@ -50,6 +50,22 @@ enum class PostLifetime(val id: String, val hours: Int) {
     DAYS_7("7d", 168)
 }
 
+data class PollOption(
+    val id: String,
+    val text: String,
+    val votes: Int = 0
+)
+
+data class PostPoll(
+    val question: String,
+    val options: List<PollOption>,
+    val selectedOptionId: String? = null,
+    val isClosed: Boolean = false
+) {
+    val totalVotes: Int
+        get() = options.sumOf { it.votes }
+}
+
 data class Post(
     val id: String,
     val author: User,
@@ -73,7 +89,8 @@ data class Post(
     val hideLikeCount: Boolean = false,
     val isPinned: Boolean = false,
     val resonanceCount: Int = 0,
-    val isResonated: Boolean = false
+    val isResonated: Boolean = false,
+    val poll: PostPoll? = null
 )
 
 data class PostComment(
@@ -171,6 +188,26 @@ data class Conversation(
     val isCircleChat: Boolean = false,
     val circleName: String? = null,
     val isOnline: Boolean = false
+)
+
+enum class MajlisStatus {
+    LIVE, UPCOMING, ENDED
+}
+
+data class MajlisRoom(
+    val id: String,
+    val title: String,
+    val description: String,
+    val category: String,
+    val host: User,
+    val coHosts: List<User> = emptyList(),
+    val status: MajlisStatus,
+    val participantCount: Int,
+    val scheduledLabel: String,
+    val accentHex: Long = 0xFFD4AF37,
+    val isJoined: Boolean = false,
+    val isHandRaised: Boolean = false,
+    val isReminderSet: Boolean = false
 )
 
 data class Community(
