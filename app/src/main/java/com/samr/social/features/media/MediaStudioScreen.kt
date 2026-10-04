@@ -52,6 +52,9 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.FlashOff
+import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.FlipCameraAndroid
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Movie
@@ -107,6 +110,7 @@ import com.samr.social.ui.theme.SamrCyan
 import com.samr.social.ui.theme.SamrEmerald
 import com.samr.social.ui.theme.SamrViolet
 import java.util.UUID
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -546,6 +550,8 @@ private fun CameraStudioContent(repository: SamrRepository) {
         }
     }
     var recording by remember { mutableStateOf<Recording?>(null) }
+    var lensFacing by remember { mutableIntStateOf(CameraSelector.LENS_FACING_BACK) }
+    var flashEnabled by remember { mutableStateOf(false) }
     var hasPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
@@ -559,7 +565,7 @@ private fun CameraStudioContent(repository: SamrRepository) {
             result[Manifest.permission.RECORD_AUDIO] == true
     }
 
-    LaunchedEffect(hasPermission) {
+    LaunchedEffect(hasPermission, lensFacing) {
         if (hasPermission) {
             val future = ProcessCameraProvider.getInstance(context)
             future.addListener({
@@ -569,9 +575,14 @@ private fun CameraStudioContent(repository: SamrRepository) {
                         it.setSurfaceProvider(previewView.surfaceProvider)
                     }
                     provider.unbindAll()
+                    val selector = CameraSelector.Builder()
+                        .requireLensFacing(lensFacing)
+                        .build()
+                    imageCapture.flashMode =
+                        if (flashEnabled) ImageCapture.FLASH_MODE_ON else ImageCapture.FLASH_MODE_OFF
                     provider.bindToLifecycle(
                         lifecycleOwner,
-                        CameraSelector.DEFAULT_BACK_CAMERA,
+                        selector,
                         preview,
                         imageCapture,
                         videoCapture
@@ -627,7 +638,52 @@ private fun CameraStudioContent(repository: SamrRepository) {
                 .background(Color.Black)
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            IconButton(
+                onClick = {
+                    lensFacing = if (lensFacing == CameraSelector.LENS_FACING_BACK) {
+                        CameraSelector.LENS_FACING_FRONT
+                    } else {
+                        CameraSelector.LENS_FACING_BACK
+                    }
+                },
+                modifier = Modifier
+                    .size(46.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surface)
+            ) {
+                Icon(
+                    Icons.Default.FlipCameraAndroid,
+                    contentDescription = stringResource(R.string.switch_camera),
+                    tint = SamrChampagne
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            IconButton(
+                onClick = {
+                    flashEnabled = !flashEnabled
+                    imageCapture.flashMode =
+                        if (flashEnabled) ImageCapture.FLASH_MODE_ON else ImageCapture.FLASH_MODE_OFF
+                },
+                modifier = Modifier
+                    .size(46.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surface)
+            ) {
+                Icon(
+                    if (flashEnabled) Icons.Default.FlashOn else Icons.Default.FlashOff,
+                    contentDescription = if (flashEnabled) stringResource(R.string.flash_off) else stringResource(R.string.flash_on),
+                    tint = if (flashEnabled) SamrChampagne else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -857,6 +913,8 @@ private fun AudioStudioContent(repository: SamrRepository) {
     var recorder by remember { mutableStateOf<MediaRecorder?>(null) }
     var recordingFile by remember { mutableStateOf<java.io.File?>(null) }
     var isRecording by remember { mutableStateOf(false) }
+    var isPaused by remember { mutableStateOf(false) }
+    var recordingSeconds by remember { mutableIntStateOf(0) }
     var hasPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
@@ -869,6 +927,13 @@ private fun AudioStudioContent(repository: SamrRepository) {
     DisposableEffect(Unit) {
         onDispose {
             runCatching { recorder?.release() }
+        }
+    }
+
+    LaunchedEffect(isRecording, isPaused) {
+        while (isRecording) {
+            delay(1000)
+            if (!isPaused) recordingSeconds++
         }
     }
 
@@ -900,6 +965,13 @@ private fun AudioStudioContent(repository: SamrRepository) {
             if (isRecording) stringResource(R.string.recording_now) else stringResource(R.string.record_audio),
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
         )
+        if (isRecording) {
+            Text(
+                stringResource(R.string.recording_duration, recordingSeconds / 60, recordingSeconds % 60),
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                color = if (isPaused) MaterialTheme.colorScheme.onSurfaceVariant else SamrChampagne
+            )
+        }
         Spacer(modifier = Modifier.height(14.dp))
 
         if (!hasPermission) {
@@ -928,6 +1000,8 @@ private fun AudioStudioContent(repository: SamrRepository) {
                             mediaRecorder.prepare()
                             mediaRecorder.start()
                             recorder = mediaRecorder
+                            recordingSeconds = 0
+                            isPaused = false
                             isRecording = true
                         }.onFailure {
                             mediaRecorder.release()
@@ -938,6 +1012,7 @@ private fun AudioStudioContent(repository: SamrRepository) {
                         runCatching { recorder?.release() }
                         recorder = null
                         isRecording = false
+                        isPaused = false
                         recordingFile?.takeIf { it.exists() }?.let { file ->
                             val uri = MediaFileUtils.uriForFile(context, file)
                             repository.addMediaAsset(
@@ -947,7 +1022,8 @@ private fun AudioStudioContent(repository: SamrRepository) {
                                     kind = MediaKind.AUDIO,
                                     origin = MediaOrigin.RECORDER,
                                     title = "SAMR voice recording",
-                                    mimeType = "audio/mp4"
+                                    mimeType = "audio/mp4",
+                                    durationMs = recordingSeconds * 1000L
                                 )
                             )
                         }
@@ -969,6 +1045,32 @@ private fun AudioStudioContent(repository: SamrRepository) {
                     if (isRecording) stringResource(R.string.stop_audio)
                     else stringResource(R.string.record_audio)
                 )
+            }
+
+            if (isRecording) {
+                Spacer(modifier = Modifier.height(8.dp))
+                TextButton(
+                    onClick = {
+                        runCatching {
+                            if (isPaused) {
+                                recorder?.resume()
+                            } else {
+                                recorder?.pause()
+                            }
+                            isPaused = !isPaused
+                        }
+                    }
+                ) {
+                    Icon(
+                        if (isPaused) Icons.Default.PlayArrow else Icons.Default.PauseCircle,
+                        contentDescription = null
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        if (isPaused) stringResource(R.string.resume_audio)
+                        else stringResource(R.string.pause_audio)
+                    )
+                }
             }
         }
     }
