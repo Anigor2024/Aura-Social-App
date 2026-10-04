@@ -26,7 +26,9 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Logout
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.VolumeMute
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -74,6 +76,8 @@ fun SettingsScreen(
     onResetDemo: () -> Unit,
     onOpenLanguageSelect: () -> Unit = {},
     onOpenSafetyCenter: () -> Unit = {},
+    onOpenExperienceCenter: () -> Unit = {},
+    onOpenContentHub: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
@@ -137,6 +141,20 @@ fun SettingsScreen(
             description = stringResource(R.string.data_saver_desc),
             checked = isDataSaverEnabled,
             onCheckedChange = { isDataSaverEnabled = it }
+        )
+
+        SettingsNavigationRow(
+            icon = Icons.Outlined.Tune,
+            title = stringResource(R.string.experience_center),
+            subtitle = stringResource(R.string.feed_density),
+            onClick = onOpenExperienceCenter
+        )
+
+        SettingsNavigationRow(
+            icon = Icons.Outlined.Schedule,
+            title = stringResource(R.string.content_hub),
+            subtitle = stringResource(R.string.content_hub_subtitle),
+            onClick = onOpenContentHub
         )
 
         SettingsSectionHeader(
