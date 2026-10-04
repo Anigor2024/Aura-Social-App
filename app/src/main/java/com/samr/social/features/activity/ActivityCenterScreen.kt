@@ -51,6 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.samr.social.R
 import com.samr.social.core.designsystem.components.SamrAvatar
+import com.samr.social.core.model.NotificationType
 import com.samr.social.core.repository.SamrRepository
 import com.samr.social.ui.theme.SamrChampagne
 
@@ -66,6 +67,7 @@ fun ActivityCenterScreen(
 
     var selectedTab by remember { mutableIntStateOf(0) }
     var showCreateCollection by remember { mutableStateOf(false) }
+    var notificationFilter by remember { mutableIntStateOf(0) }
     var showCreateCircle by remember { mutableStateOf(false) }
 
     Column(
@@ -128,12 +130,51 @@ fun ActivityCenterScreen(
             )
         }
 
+        val visibleNotifications = notifications.filter { item ->
+            when (notificationFilter) {
+                1 -> !item.isRead
+                2 -> item.type != NotificationType.SYSTEM
+                3 -> item.type == NotificationType.SYSTEM
+                else -> true
+            }
+        }
+
         when (selectedTab) {
             0 -> LazyColumn(
                 contentPadding = PaddingValues(12.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                items(notifications, key = { it.id }) { item ->
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        listOf(
+                            stringResource(R.string.activity_filter_all),
+                            stringResource(R.string.activity_filter_unread),
+                            stringResource(R.string.activity_filter_social),
+                            stringResource(R.string.activity_filter_system)
+                        ).forEachIndexed { index, label ->
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (notificationFilter == index) SamrChampagne else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(
+                                        if (notificationFilter == index) SamrChampagne.copy(alpha = 0.12f)
+                                        else MaterialTheme.colorScheme.surface
+                                    )
+                                    .clickable { notificationFilter = index }
+                                    .padding(horizontal = 9.dp, vertical = 7.dp)
+                            )
+                        }
+                    }
+                }
+
+                items(visibleNotifications, key = { it.id }) { item ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
