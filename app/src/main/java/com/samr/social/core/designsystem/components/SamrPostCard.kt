@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -89,6 +91,7 @@ fun SamrPostCard(
     onReportClick: () -> Unit = {},
     onHideClick: () -> Unit = {},
     compactMode: Boolean = false,
+    autoplayMedia: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
@@ -350,8 +353,34 @@ fun SamrPostCard(
             lineHeight = 24.sp
         )
 
-        // Post Media Attachments
-        if (post.mediaUrls.isNotEmpty()) {
+        // First-class SAMR media attachments
+        if (post.mediaAssets.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(12.dp))
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(post.mediaAssets, key = { it.id }) { asset ->
+                    Box(
+                        modifier = Modifier.width(if (post.mediaAssets.size == 1) 330.dp else 286.dp)
+                    ) {
+                        SamrMediaAssetPreview(
+                            asset = asset,
+                            height = if (compactMode) 190.dp else 260.dp,
+                            autoplay = autoplayMedia && !isQuietMode
+                        )
+                    }
+                }
+            }
+            if (post.mediaAssets.size > 1) {
+                Text(
+                    text = stringResource(R.string.selected_media, post.mediaAssets.size),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 6.dp)
+                )
+            }
+        } else if (post.mediaUrls.isNotEmpty()) {
             Spacer(modifier = Modifier.height(12.dp))
             val firstMedia = post.mediaUrls.first()
 
@@ -391,7 +420,7 @@ fun SamrPostCard(
             }
         }
 
-        if (!post.altText.isNullOrBlank() && post.mediaUrls.isNotEmpty() && !compactMode) {
+        if (!post.altText.isNullOrBlank() && (post.mediaUrls.isNotEmpty() || post.mediaAssets.isNotEmpty()) && !compactMode) {
             Text(
                 text = stringResource(R.string.image_description, post.altText),
                 style = MaterialTheme.typography.labelSmall,
@@ -727,6 +756,7 @@ fun AuraPostCard(
     onReportClick: () -> Unit = {},
     onHideClick: () -> Unit = {},
     compactMode: Boolean = false,
+    autoplayMedia: Boolean = false,
     modifier: Modifier = Modifier
 ) = SamrPostCard(
     post = post,
@@ -748,5 +778,6 @@ fun AuraPostCard(
     onReportClick = onReportClick,
     onHideClick = onHideClick,
     compactMode = compactMode,
+    autoplayMedia = autoplayMedia,
     modifier = modifier
 )
