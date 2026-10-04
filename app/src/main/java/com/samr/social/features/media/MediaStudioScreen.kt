@@ -57,6 +57,7 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.StopCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -246,6 +247,8 @@ fun MediaStudioScreen(
                     selectedIds = selectedIds - it
                     repository.deleteMediaAsset(it)
                 },
+                onPublishStory = { repository.publishAssetAsStory(it) },
+                onPublishClip = { repository.publishVideoAssetAsClip(it, it.title) },
                 onImportImage = { importImage.launch("image/*") },
                 onImportVideo = { importVideo.launch("video/*") },
                 onImportAudio = { importAudio.launch("audio/*") }
@@ -306,15 +309,63 @@ private fun MediaLibraryContent(
     onFavorite: (String) -> Unit,
     onDuplicate: (String) -> Unit,
     onDelete: (String) -> Unit,
+    onPublishStory: (MediaAsset) -> Unit,
+    onPublishClip: (MediaAsset) -> Unit,
     onImportImage: () -> Unit,
     onImportVideo: () -> Unit,
     onImportAudio: () -> Unit
 ) {
+    var query by remember { mutableStateOf("") }
+    var filter by remember { mutableIntStateOf(0) }
+    val filterLabels = listOf(
+        stringResource(R.string.media_filter_all),
+        stringResource(R.string.media_kind_image),
+        stringResource(R.string.media_kind_video),
+        stringResource(R.string.media_kind_audio),
+        stringResource(R.string.media_filter_favorites)
+    )
+    val visibleAssets = remember(assets, query, filter) {
+        assets.filter { asset ->
+            val matchesQuery = query.isBlank() || asset.title.contains(query, ignoreCase = true)
+            val matchesFilter = when (filter) {
+                1 -> asset.kind == MediaKind.IMAGE
+                2 -> asset.kind == MediaKind.VIDEO
+                3 -> asset.kind == MediaKind.AUDIO
+                4 -> asset.isFavorite
+                else -> true
+            }
+            matchesQuery && matchesFilter
+        }
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(14.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
+        item {
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                placeholder = { Text(stringResource(R.string.media_search)) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                singleLine = true
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                items(filterLabels) { label ->
+                    val index = filterLabels.indexOf(label)
+                    StudioTab(
+                        label = label,
+                        selected = filter == index,
+                        onClick = { filter = index }
+                    )
+                }
+            }
+        }
+
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -351,7 +402,7 @@ private fun MediaLibraryContent(
             }
         }
 
-        if (assets.isEmpty()) {
+        if (visibleAssets.isEmpty()) {
             item {
                 Box(
                     modifier = Modifier
@@ -366,7 +417,7 @@ private fun MediaLibraryContent(
                 }
             }
         } else {
-            items(assets, key = { it.id }) { asset ->
+            items(visibleAssets, key = { it.id }) { asset ->
                 MediaLibraryCard(
                     asset = asset,
                     selected = asset.id in selectedIds,
@@ -374,7 +425,9 @@ private fun MediaLibraryContent(
                     onEdit = { onEdit(asset) },
                     onFavorite = { onFavorite(asset.id) },
                     onDuplicate = { onDuplicate(asset.id) },
-                    onDelete = { onDelete(asset.id) }
+                    onDelete = { onDelete(asset.id) },
+                    onPublishStory = { onPublishStory(asset) },
+                    onPublishClip = { onPublishClip(asset) }
                 )
             }
         }
@@ -410,7 +463,9 @@ private fun MediaLibraryCard(
     onEdit: () -> Unit,
     onFavorite: () -> Unit,
     onDuplicate: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onPublishStory: () -> Unit,
+    onPublishClip: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -446,9 +501,24 @@ private fun MediaLibraryCard(
             }
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
             TextButton(onClick = onEdit) {
                 Text(stringResource(R.string.image_editor))
+            }
+            if (asset.kind != MediaKind.AUDIO) {
+                TextButton(onClick = onPublishStory) {
+                    Text(stringResource(R.string.publish_as_story), color = SamrCyan)
+                }
+            }
+            if (asset.kind == MediaKind.VIDEO) {
+                TextButton(onClick = onPublishClip) {
+                    Text(stringResource(R.string.publish_as_clip), color = SamrViolet)
+                }
             }
             TextButton(onClick = onDuplicate) {
                 Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(15.dp))
