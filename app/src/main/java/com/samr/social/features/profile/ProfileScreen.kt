@@ -85,6 +85,7 @@ fun ProfileScreen(
     repository: SamrRepository,
     onNavigateToSettings: () -> Unit,
     onOpenStudio: () -> Unit = {},
+    onOpenContentHub: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
@@ -94,6 +95,7 @@ fun ProfileScreen(
     val clips by repository.clips.collectAsState()
     val comments by repository.comments.collectAsState()
     val isQuietMode by repository.isQuietMode.collectAsState()
+    val experiencePreferences by repository.experiencePreferences.collectAsState()
 
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     var showEditSheet by remember { mutableStateOf(false) }
@@ -249,23 +251,44 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // External Link
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Outlined.Link,
-                        contentDescription = null,
-                        tint = AuraChampagne,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
+                if (currentUser.profileLinks.isNotEmpty()) {
                     Text(
-                        text = "nourstudio.design",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = AuraChampagne
+                        text = stringResource(R.string.profile_links),
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                        color = MaterialTheme.colorScheme.onSurface
                     )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(currentUser.profileLinks) { link ->
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                    .clickable {
+                                        val value = if (link.value.startsWith("http")) link.value else "https://" + link.value
+                                        val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(value))
+                                        context.startActivity(intent)
+                                    }
+                                    .padding(horizontal = 10.dp, vertical = 7.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Link,
+                                    contentDescription = null,
+                                    tint = AuraChampagne,
+                                    modifier = Modifier.size(15.dp)
+                                )
+                                Spacer(modifier = Modifier.width(5.dp))
+                                Text(
+                                    text = link.label,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = AuraChampagne
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
 
                 // Stats Row
                 Row(
@@ -275,6 +298,40 @@ fun ProfileScreen(
                     ProfileStatItem(count = "${currentUser.postsCount}", label = stringResource(R.string.posts_stat))
                     ProfileStatItem(count = "${currentUser.followersCount / 1000}k", label = stringResource(R.string.followers_stat))
                     ProfileStatItem(count = "${currentUser.followingCount}", label = stringResource(R.string.following_stat))
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                if (currentUser.achievements.isNotEmpty()) {
+                    Text(
+                        text = stringResource(R.string.achievements),
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(currentUser.achievements) { achievement ->
+                            Column(
+                                modifier = Modifier
+                                    .width(150.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(AuraChampagne.copy(alpha = 0.08f))
+                                    .border(1.dp, AuraChampagne.copy(alpha = 0.22f), RoundedCornerShape(16.dp))
+                                    .padding(12.dp)
+                            ) {
+                                Text(achievement.icon, style = MaterialTheme.typography.titleLarge)
+                                Text(
+                                    achievement.title,
+                                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+                                )
+                                Text(
+                                    achievement.description,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 2
+                                )
+                            }
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -320,6 +377,41 @@ fun ProfileScreen(
                     Text(
                         stringResource(R.string.view_studio),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = AuraChampagne
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.28f), RoundedCornerShape(18.dp))
+                        .clickable(onClick = onOpenContentHub)
+                        .padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.Bookmark, contentDescription = null, tint = AuraChampagne)
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 10.dp)
+                    ) {
+                        Text(
+                            stringResource(R.string.content_hub),
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                        )
+                        Text(
+                            stringResource(R.string.content_hub_subtitle),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Text(
+                        stringResource(R.string.open_content_hub),
+                        style = MaterialTheme.typography.labelSmall,
                         color = AuraChampagne
                     )
                 }
@@ -492,7 +584,11 @@ fun ProfileScreen(
                         onDeleteClick = { deletingPostId = post.id },
                         onPinClick = { repository.togglePinPost(post.id) },
                         onResonanceClick = { repository.toggleResonance(post.id) },
-                        onPollVote = { optionId -> repository.votePoll(post.id, optionId) }
+                        onPollVote = { optionId -> repository.votePoll(post.id, optionId) },
+                        onMuteCreatorClick = { repository.toggleMuteUser(post.author.id) },
+                        onReportClick = { repository.reportPost(post.id) },
+                        onHideClick = { repository.hidePost(post.id) },
+                        compactMode = experiencePreferences.compactFeed
                     )
                 }
             }
@@ -513,6 +609,7 @@ fun ProfileScreen(
                     currentUserId = currentUser.id,
                     onAddComment = { repository.addComment(postId, it) },
                     onDeleteComment = repository::deleteComment,
+                    onLikeComment = repository::toggleCommentLike,
                     onClose = { commentingPostId = null }
                 )
             }
