@@ -61,6 +61,9 @@ fun SafetyCenterScreen(
     var allowMentions by remember(preferences) { mutableStateOf(preferences.allowMentions) }
     var showActivityStatus by remember(preferences) { mutableStateOf(preferences.showActivityStatus) }
     var sensitiveFilter by remember(preferences) { mutableStateOf(preferences.sensitiveContentFilter) }
+    var allowMediaDownloads by remember(preferences) { mutableStateOf(preferences.allowMediaDownloads) }
+    var allowRemixes by remember(preferences) { mutableStateOf(preferences.allowRemixes) }
+    var allowClipReuse by remember(preferences) { mutableStateOf(preferences.allowClipReuse) }
     var hiddenWords by remember(preferences) { mutableStateOf(preferences.hiddenWords.joinToString(", ")) }
     var saved by remember { mutableStateOf(false) }
 
@@ -185,6 +188,54 @@ fun SafetyCenterScreen(
                 .padding(horizontal = 16.dp, vertical = 10.dp)
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(20.dp))
+                .background(SamrChampagne.copy(alpha = 0.06f))
+                .border(
+                    1.dp,
+                    SamrChampagne.copy(alpha = 0.22f),
+                    RoundedCornerShape(20.dp)
+                )
+                .padding(vertical = 8.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.media_privacy_desc),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
+            )
+            PrivacyToggle(
+                title = stringResource(R.string.allow_media_downloads),
+                checked = allowMediaDownloads,
+                onChange = {
+                    allowMediaDownloads = it
+                    saved = false
+                },
+                nested = true
+            )
+            PrivacyToggle(
+                title = stringResource(R.string.allow_remixes),
+                checked = allowRemixes,
+                onChange = {
+                    allowRemixes = it
+                    saved = false
+                },
+                nested = true
+            )
+            PrivacyToggle(
+                title = stringResource(R.string.allow_clip_reuse),
+                checked = allowClipReuse,
+                onChange = {
+                    allowClipReuse = it
+                    saved = false
+                },
+                nested = true
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 10.dp)
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(20.dp))
                 .background(MaterialTheme.colorScheme.surface)
                 .border(
                     1.dp,
@@ -232,7 +283,10 @@ fun SafetyCenterScreen(
                     allowMentions = allowMentions,
                     showActivityStatus = showActivityStatus,
                     sensitiveContentFilter = sensitiveFilter,
-                    hiddenWords = hiddenWords.split(",")
+                    hiddenWords = hiddenWords.split(","),
+                    allowMediaDownloads = allowMediaDownloads,
+                    allowRemixes = allowRemixes,
+                    allowClipReuse = allowClipReuse
                 )
                 saved = true
             },
@@ -267,14 +321,18 @@ fun SafetyCenterScreen(
 private fun PrivacyToggle(
     title: String,
     checked: Boolean,
-    onChange: (Boolean) -> Unit
+    onChange: (Boolean) -> Unit,
+    nested: Boolean = false
 ) {
     Row(
         modifier = Modifier
-            .padding(horizontal = 16.dp, vertical = 5.dp)
+            .padding(horizontal = if (nested) 8.dp else 16.dp, vertical = 5.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
-            .background(MaterialTheme.colorScheme.surface)
+            .background(
+                if (nested) MaterialTheme.colorScheme.surface.copy(alpha = 0.72f)
+                else MaterialTheme.colorScheme.surface
+            )
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
