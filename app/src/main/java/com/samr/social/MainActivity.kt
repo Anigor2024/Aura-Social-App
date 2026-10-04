@@ -223,6 +223,10 @@ fun SamrApp(
                 onOpenContentHub = {
                     isViewingSettings = false
                     isViewingContentHub = true
+                },
+                onOpenMediaStudio = {
+                    isViewingSettings = false
+                    isViewingMediaStudio = true
                 }
             )
         }
