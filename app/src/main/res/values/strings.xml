@@ -523,4 +523,13 @@
     <string name="studio_quick_clip">Create clip</string>
     <string name="studio_quick_story">Create story</string>
     <string name="studio_project_count">%1$d media assets</string>
+    <string name="media_search">Search your media</string>
+    <string name="media_filter_all">All</string>
+    <string name="media_filter_favorites">Favorites</string>
+    <string name="publish_as_story">Publish as story</string>
+    <string name="send_media">Send media</string>
+    <string name="attach_media">Attach media</string>
+    <string name="media_caption">Media caption</string>
+    <string name="choose_from_studio">Choose from SAMR Studio</string>
+    <string name="recent_media">Recent media</string>
 </resources>
