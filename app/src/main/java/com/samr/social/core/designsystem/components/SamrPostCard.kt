@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Forum
@@ -81,6 +82,7 @@ fun SamrPostCard(
     onEditClick: () -> Unit = {},
     onDeleteClick: () -> Unit = {},
     onPinClick: () -> Unit = {},
+    onResonanceClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
@@ -409,7 +411,45 @@ fun SamrPostCard(
             }
         }
 
-        Spacer(modifier = Modifier.height(14.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(
+            modifier = Modifier
+                .clip(RoundedCornerShape(14.dp))
+                .background(
+                    if (post.isResonated) SamrChampagne.copy(alpha = 0.14f)
+                    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
+                )
+                .clickable {
+                    view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                    onResonanceClick()
+                }
+                .padding(horizontal = 11.dp, vertical = 7.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.AutoAwesome,
+                contentDescription = stringResource(R.string.resonance),
+                tint = if (post.isResonated) SamrChampagne else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = stringResource(R.string.resonance),
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                color = if (post.isResonated) SamrChampagne else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            if (!isQuietMode && post.resonanceCount > 0) {
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = FormatUtils.formatCount(post.resonanceCount, isArabic),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
 
         // Interaction Action Row
         Row(
@@ -551,6 +591,7 @@ fun AuraPostCard(
     onEditClick: () -> Unit = {},
     onDeleteClick: () -> Unit = {},
     onPinClick: () -> Unit = {},
+    onResonanceClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) = SamrPostCard(
     post = post,
@@ -566,5 +607,6 @@ fun AuraPostCard(
     onEditClick = onEditClick,
     onDeleteClick = onDeleteClick,
     onPinClick = onPinClick,
+    onResonanceClick = onResonanceClick,
     modifier = modifier
 )
