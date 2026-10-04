@@ -84,6 +84,12 @@ fun CreatePostScreen(
     var mediaUrlInput by remember { mutableStateOf("") }
     var allowComments by remember { mutableStateOf(true) }
     var hideLikeCount by remember { mutableStateOf(false) }
+    var pollEnabled by remember { mutableStateOf(false) }
+    var pollQuestion by remember { mutableStateOf("") }
+    var pollOption1 by remember { mutableStateOf("") }
+    var pollOption2 by remember { mutableStateOf("") }
+    var pollOption3 by remember { mutableStateOf("") }
+    var pollOption4 by remember { mutableStateOf("") }
     var selectedFilterIndex by remember { mutableStateOf(0) }
 
     val filterNames = listOf(
@@ -123,10 +129,14 @@ fun CreatePostScreen(
                 color = MaterialTheme.colorScheme.onSurface
             )
 
+            val hasValidPoll = pollEnabled &&
+                pollQuestion.isNotBlank() &&
+                listOf(pollOption1, pollOption2, pollOption3, pollOption4).count { it.isNotBlank() } >= 2
+
             AuraPrimaryButton(
                 text = stringResource(R.string.publish),
                 onClick = {
-                    if (postText.isNotBlank() || attachedImageUrl != null) {
+                    if (postText.isNotBlank() || attachedImageUrl != null || hasValidPoll) {
                         repository.publishPost(
                             text = postText,
                             mediaUrls = if (attachedImageUrl != null) listOf(attachedImageUrl!!) else emptyList(),
@@ -134,12 +144,18 @@ fun CreatePostScreen(
                             lifetime = selectedLifetime,
                             collaborator = null,
                             allowComments = allowComments,
-                            hideLikeCount = hideLikeCount
+                            hideLikeCount = hideLikeCount,
+                            pollQuestion = if (hasValidPoll) pollQuestion else null,
+                            pollOptions = if (hasValidPoll) {
+                                listOf(pollOption1, pollOption2, pollOption3, pollOption4)
+                            } else {
+                                emptyList()
+                            }
                         )
                         onPostCreated()
                     }
                 },
-                enabled = postText.isNotBlank() || attachedImageUrl != null,
+                enabled = postText.isNotBlank() || attachedImageUrl != null || hasValidPoll,
                 height = 40.dp
             )
         }
@@ -332,6 +348,87 @@ fun CreatePostScreen(
                         )
                     }
                 }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.add_poll),
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold)
+                )
+                Text(
+                    text = stringResource(R.string.add_poll_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Switch(
+                checked = pollEnabled,
+                onCheckedChange = { pollEnabled = it }
+            )
+        }
+
+        if (pollEnabled) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(AuraChampagne.copy(alpha = 0.06f))
+                    .border(1.dp, AuraChampagne.copy(alpha = 0.24f), RoundedCornerShape(18.dp))
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(
+                    value = pollQuestion,
+                    onValueChange = { if (it.length <= 120) pollQuestion = it },
+                    label = { Text(stringResource(R.string.poll_question)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp)
+                )
+                OutlinedTextField(
+                    value = pollOption1,
+                    onValueChange = { if (it.length <= 60) pollOption1 = it },
+                    label = { Text(stringResource(R.string.poll_option, 1)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = pollOption2,
+                    onValueChange = { if (it.length <= 60) pollOption2 = it },
+                    label = { Text(stringResource(R.string.poll_option, 2)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = pollOption3,
+                    onValueChange = { if (it.length <= 60) pollOption3 = it },
+                    label = { Text(stringResource(R.string.poll_option_optional, 3)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = pollOption4,
+                    onValueChange = { if (it.length <= 60) pollOption4 = it },
+                    label = { Text(stringResource(R.string.poll_option_optional, 4)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    singleLine = true
+                )
             }
         }
 
