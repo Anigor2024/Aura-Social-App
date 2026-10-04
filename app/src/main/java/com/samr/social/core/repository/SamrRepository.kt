@@ -4,6 +4,7 @@ import com.samr.social.core.model.CatchUpSummary
 import com.samr.social.core.model.Clip
 import com.samr.social.core.model.ClipComment
 import com.samr.social.core.model.EchoNote
+import com.samr.social.core.model.ExperiencePreferences
 import com.samr.social.core.model.Community
 import com.samr.social.core.model.Conversation
 import com.samr.social.core.model.DirectMessage
@@ -15,15 +16,19 @@ import com.samr.social.core.model.PollOption
 import com.samr.social.core.model.Post
 import com.samr.social.core.model.PostComment
 import com.samr.social.core.model.PostLifetime
+import com.samr.social.core.model.PostDraft
 import com.samr.social.core.model.PostPoll
 import com.samr.social.core.model.PrivacyPreferences
+import com.samr.social.core.model.ProfileLink
 import com.samr.social.core.model.SamrCircle
 import com.samr.social.core.model.SavedCollection
+import com.samr.social.core.model.ScheduledPost
 import com.samr.social.core.model.SocialLayer
 import com.samr.social.core.model.SocialNotification
 import com.samr.social.core.model.NotificationType
 import com.samr.social.core.model.Story
 import com.samr.social.core.model.User
+import com.samr.social.core.model.UserAchievement
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -44,7 +49,17 @@ class SamrRepository {
             followersCount = 18400,
             followingCount = 385,
             postsCount = 94,
-            activeSocialLayer = SocialLayer.PERSONAL
+            activeSocialLayer = SocialLayer.PERSONAL,
+            profileLinks = listOf(
+                ProfileLink("Portfolio", "noura.design/work"),
+                ProfileLink("Behance", "behance.net/noura"),
+                ProfileLink("LinkedIn", "linkedin.com/in/noura")
+            ),
+            achievements = listOf(
+                UserAchievement("ach_founder", "صوت مؤثر", "✦", "تفاعل نوعي ومستمر مع المجتمع"),
+                UserAchievement("ach_design", "رؤية تصميمية", "◈", "محتوى مميز في التصميم والمنتج"),
+                UserAchievement("ach_community", "صانعة مجتمع", "◎", "مساهمات فعالة داخل الدوائر والمجالس")
+            )
         )
     )
     val currentUser: StateFlow<User> = _currentUser.asStateFlow()
@@ -427,6 +442,44 @@ class SamrRepository {
     )
     val privacyPreferences: StateFlow<PrivacyPreferences> = _privacyPreferences.asStateFlow()
 
+    private val _experiencePreferences = MutableStateFlow(ExperiencePreferences())
+    val experiencePreferences: StateFlow<ExperiencePreferences> = _experiencePreferences.asStateFlow()
+
+    private val _drafts = MutableStateFlow(
+        listOf(
+            PostDraft(
+                id = "draft_1",
+                text = "مسودة: كيف نصمم لحظات هادئة داخل المنتجات الاجتماعية بدون تقليل التفاعل؟",
+                locationTag = "الرياض",
+                updatedLabel = "منذ 12 دقيقة"
+            )
+        )
+    )
+    val drafts: StateFlow<List<PostDraft>> = _drafts.asStateFlow()
+
+    private val _scheduledPosts = MutableStateFlow(
+        listOf(
+            ScheduledPost(
+                id = "scheduled_1",
+                text = "ملاحظات سريعة من جلسة اختبار واجهة المجالس الجديدة.",
+                scheduledLabel = "اليوم • 8:45 م",
+                locationTag = "الرياض"
+            )
+        )
+    )
+    val scheduledPosts: StateFlow<List<ScheduledPost>> = _scheduledPosts.asStateFlow()
+
+    private val _recentSearches = MutableStateFlow(
+        listOf("تصميم المنتجات", "Jetpack Compose", "الدرعية", "العمارة المستدامة")
+    )
+    val recentSearches: StateFlow<List<String>> = _recentSearches.asStateFlow()
+
+    private val _mutedUserIds = MutableStateFlow(setOf<String>())
+    val mutedUserIds: StateFlow<Set<String>> = _mutedUserIds.asStateFlow()
+
+    private val _blockedUserIds = MutableStateFlow(setOf<String>())
+    val blockedUserIds: StateFlow<Set<String>> = _blockedUserIds.asStateFlow()
+
     // Clips with actual working video stream URLs
     private val _clips = MutableStateFlow(
         listOf(
@@ -783,7 +836,9 @@ class SamrRepository {
         allowComments: Boolean = true,
         hideLikeCount: Boolean = false,
         pollQuestion: String? = null,
-        pollOptions: List<String> = emptyList()
+        pollOptions: List<String> = emptyList(),
+        locationTag: String? = null,
+        altText: String? = null
     ) {
         val newPost = Post(
             id = "post_${UUID.randomUUID().toString().take(8)}",
@@ -803,6 +858,8 @@ class SamrRepository {
             collaborator = collaborator,
             allowComments = allowComments,
             hideLikeCount = hideLikeCount,
+            locationTag = locationTag?.trim()?.takeIf { it.isNotBlank() },
+            altText = altText?.trim()?.takeIf { it.isNotBlank() },
             poll = pollQuestion
                 ?.trim()
                 ?.takeIf { it.isNotBlank() && pollOptions.count { option -> option.isNotBlank() } >= 2 }
@@ -824,7 +881,12 @@ class SamrRepository {
         _posts.value = listOf(newPost) + _posts.value
     }
 
-    fun sendMessage(conversationId: String, text: String, voiceDuration: Int? = null) {
+    fun sendMessage(
+        conversationId: String,
+        text: String,
+        voiceDuration: Int? = null,
+        replyToText: String? = null
+    ) {
         val newMsg = DirectMessage(
             id = "msg_${UUID.randomUUID().toString().take(8)}",
             conversationId = conversationId,
@@ -834,7 +896,8 @@ class SamrRepository {
             isMine = true,
             voiceDurationSeconds = voiceDuration,
             voiceWaveform = if (voiceDuration != null) listOf(0.3f, 0.7f, 0.9f, 0.4f, 0.8f, 0.5f, 0.2f) else null,
-            status = MessageStatus.SENT
+            status = MessageStatus.SENT,
+            replyToText = replyToText
         )
         _threadMessages.value = _threadMessages.value + newMsg
     }
@@ -873,6 +936,17 @@ class SamrRepository {
             if (room.id == roomId && room.status == MajlisStatus.UPCOMING) {
                 room.copy(isReminderSet = !room.isReminderSet)
             } else room
+        }
+    }
+
+    fun reactMajlis(roomId: String, reaction: String) {
+        _majlisRooms.value = _majlisRooms.value.map { room ->
+            if (room.id != roomId) room
+            else when (reaction) {
+                "applause" -> room.copy(applauseCount = room.applauseCount + 1)
+                "heart" -> room.copy(heartCount = room.heartCount + 1)
+                else -> room
+            }
         }
     }
 
