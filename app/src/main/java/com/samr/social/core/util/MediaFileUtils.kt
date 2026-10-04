@@ -70,7 +70,7 @@ object MediaFileUtils {
             intArrayOf(Color.rgb(7, 28, 33), Color.rgb(29, 98, 118)),
             intArrayOf(Color.rgb(24, 24, 24), Color.rgb(73, 73, 73))
         )
-        val palette = palettes[styleIndex.mod(palettes.size)]
+        val palette = palettes[((styleIndex % palettes.size) + palettes.size) % palettes.size]
         val background = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             shader = LinearGradient(
                 0f,
