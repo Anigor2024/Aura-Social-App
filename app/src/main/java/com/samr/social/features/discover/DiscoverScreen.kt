@@ -123,6 +123,13 @@ fun DiscoverScreen(
         "#تطوير_التطبيقات", "#تصوير", "#العمارة", "#JetpackCompose", "#UI_UX"
     )
 
+    val searchFilterLabels = listOf(
+        stringResource(R.string.search_all),
+        stringResource(R.string.search_people),
+        stringResource(R.string.search_posts),
+        stringResource(R.string.search_communities)
+    )
+
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
@@ -166,20 +173,8 @@ fun DiscoverScreen(
                 modifier = Modifier.padding(top = 10.dp),
                 horizontalArrangement = Arrangement.spacedBy(7.dp)
             ) {
-                items(
-                    listOf(
-                        stringResource(R.string.search_all),
-                        stringResource(R.string.search_people),
-                        stringResource(R.string.search_posts),
-                        stringResource(R.string.search_communities)
-                    )
-                ) { label ->
-                    val index = listOf(
-                        stringResource(R.string.search_all),
-                        stringResource(R.string.search_people),
-                        stringResource(R.string.search_posts),
-                        stringResource(R.string.search_communities)
-                    ).indexOf(label)
+                items(searchFilterLabels) { label ->
+                    val index = searchFilterLabels.indexOf(label)
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
