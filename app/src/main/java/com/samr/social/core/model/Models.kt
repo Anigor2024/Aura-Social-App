@@ -68,7 +68,40 @@ data class Post(
     val collaborator: User? = null,
     val discussionRoomId: String? = null,
     val discussionRoomTopic: String? = null,
-    val isQuietModeEligible: Boolean = true
+    val isQuietModeEligible: Boolean = true,
+    val allowComments: Boolean = true,
+    val hideLikeCount: Boolean = false,
+    val isPinned: Boolean = false
+)
+
+data class PostComment(
+    val id: String,
+    val postId: String,
+    val author: User,
+    val text: String,
+    val timestampLabel: String = "الآن",
+    val likesCount: Int = 0,
+    val isLiked: Boolean = false
+)
+
+enum class NotificationType {
+    LIKE, COMMENT, FOLLOW, MENTION, MESSAGE, COMMUNITY, SYSTEM
+}
+
+data class SocialNotification(
+    val id: String,
+    val actor: User?,
+    val type: NotificationType,
+    val title: String,
+    val body: String,
+    val timestampLabel: String,
+    val isRead: Boolean = false
+)
+
+data class SavedCollection(
+    val id: String,
+    val title: String,
+    val postIds: List<String> = emptyList()
 )
 
 data class Story(
