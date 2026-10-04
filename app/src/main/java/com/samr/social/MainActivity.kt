@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.samr.social.core.designsystem.components.SamrBottomBar
 import com.samr.social.core.designsystem.components.SamrNavigationTab
 import com.samr.social.core.designsystem.components.SamrTopBar
+import com.samr.social.core.model.MediaAsset
 import com.samr.social.core.model.PostDraft
 import com.samr.social.core.repository.SamrRepository
 import com.samr.social.core.util.LocaleManager
@@ -42,6 +43,7 @@ import com.samr.social.features.home.HomeScreen
 import com.samr.social.features.home.SmartCatchUpContent
 import com.samr.social.features.language.LanguageSelectScreen
 import com.samr.social.features.majlis.MajlisScreen
+import com.samr.social.features.media.MediaStudioScreen
 import com.samr.social.features.profile.ProfileScreen
 import com.samr.social.features.safety.SafetyCenterScreen
 import com.samr.social.features.settings.ExperienceCenterScreen
@@ -96,6 +98,8 @@ fun SamrApp(
     var isViewingSafetyCenter by remember { mutableStateOf(false) }
     var isViewingContentHub by remember { mutableStateOf(false) }
     var isViewingExperienceCenter by remember { mutableStateOf(false) }
+    var isViewingMediaStudio by remember { mutableStateOf(false) }
+    var selectedComposerMedia by remember { mutableStateOf<List<MediaAsset>>(emptyList()) }
     var selectedDraft by remember { mutableStateOf<PostDraft?>(null) }
     var showCatchUpDialog by remember { mutableStateOf(false) }
 
@@ -174,6 +178,19 @@ fun SamrApp(
             ExperienceCenterScreen(
                 repository = repository,
                 onBack = { isViewingExperienceCenter = false }
+            )
+        }
+
+        isViewingMediaStudio -> {
+            BackHandler { isViewingMediaStudio = false }
+            MediaStudioScreen(
+                repository = repository,
+                onBack = { isViewingMediaStudio = false },
+                onUseMedia = { assets ->
+                    selectedComposerMedia = assets
+                    isViewingMediaStudio = false
+                    isCreatingPost = true
+                }
             )
         }
 
@@ -273,17 +290,24 @@ fun SamrApp(
                         CreatePostScreen(
                             repository = repository,
                             initialDraft = selectedDraft,
+                            initialMediaAssets = selectedComposerMedia,
                             onPostCreated = {
+                                selectedComposerMedia = emptyList(),
                                 selectedDraft = null
                                 isCreatingPost = false
                             },
                             onCancel = {
                                 selectedDraft = null
+                                selectedComposerMedia = emptyList()
                                 isCreatingPost = false
                             },
                             onOpenContentHub = {
                                 isCreatingPost = false
                                 isViewingContentHub = true
+                            },
+                            onOpenMediaStudio = {
+                                isCreatingPost = false
+                                isViewingMediaStudio = true
                             }
                         )
                     } else {
@@ -302,7 +326,8 @@ fun SamrApp(
                                     },
                                     onCreatePost = { isCreatingPost = true },
                                     onOpenStudio = { isViewingStudio = true },
-                                    onOpenMajlis = { isViewingMajlis = true }
+                                    onOpenMajlis = { isViewingMajlis = true },
+                                    onOpenMediaStudio = { isViewingMediaStudio = true }
                                 )
 
                                 SamrNavigationTab.DISCOVER -> DiscoverScreen(
@@ -334,7 +359,8 @@ fun SamrApp(
                                         isViewingSettings = true
                                     },
                                     onOpenStudio = { isViewingStudio = true },
-                                    onOpenContentHub = { isViewingContentHub = true }
+                                    onOpenContentHub = { isViewingContentHub = true },
+                                    onOpenMediaStudio = { isViewingMediaStudio = true }
                                 )
                             }
                         }
