@@ -291,6 +291,10 @@ fun HomeScreen(
                     onMuteCreatorClick = { repository.toggleMuteUser(post.author.id) },
                     onReportClick = { repository.reportPost(post.id) },
                     onHideClick = { repository.hidePost(post.id) },
+                    onRemixClick = {
+                        repository.remixPostToLibrary(post.id)
+                        onOpenMediaStudio()
+                    },
                     compactMode = experiencePreferences.compactFeed,
                     autoplayMedia = experiencePreferences.autoplayVideos
                 )
