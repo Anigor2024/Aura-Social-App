@@ -130,6 +130,8 @@ data class Post(
     val poll: PostPoll? = null,
     val locationTag: String? = null,
     val altText: String? = null,
+    val allowDownloads: Boolean = true,
+    val allowRemix: Boolean = true,
     val isReported: Boolean = false,
     val isHidden: Boolean = false
 )
