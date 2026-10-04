@@ -28,12 +28,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -45,6 +50,7 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -247,6 +253,9 @@ fun ConversationThreadScreen(
     val messages by repository.threadMessages.collectAsState()
     var inputMessage by remember { mutableStateOf("") }
     var isRecordingVoice by remember { mutableStateOf(false) }
+    var editingMessage by remember { mutableStateOf<DirectMessage?>(null) }
+    var deletingMessage by remember { mutableStateOf<DirectMessage?>(null) }
+    var showDeleteConversation by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -280,7 +289,7 @@ fun ConversationThreadScreen(
 
             Spacer(modifier = Modifier.width(10.dp))
 
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = conversation.participant.displayName,
                     style = MaterialTheme.typography.titleMedium,
@@ -290,6 +299,14 @@ fun ConversationThreadScreen(
                     text = if (conversation.isOnline) stringResource(R.string.online_now) else stringResource(R.string.last_seen, "15m"),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            IconButton(onClick = { showDeleteConversation = true }) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = stringResource(R.string.delete_action),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -303,7 +320,11 @@ fun ConversationThreadScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(messages, key = { it.id }) { msg ->
-                MessageBubble(msg = msg)
+                MessageBubble(
+                    msg = msg,
+                    onEdit = { editingMessage = msg },
+                    onDelete = { deletingMessage = msg }
+                )
             }
         }
 
@@ -418,10 +439,92 @@ fun ConversationThreadScreen(
             }
         }
     }
+
+    editingMessage?.let { message ->
+        var editedText by remember(message.id) { mutableStateOf(message.text) }
+        AlertDialog(
+            onDismissRequest = { editingMessage = null },
+            title = { Text(stringResource(R.string.edit_post)) },
+            text = {
+                OutlinedTextField(
+                    value = editedText,
+                    onValueChange = { editedText = it },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        repository.editMessage(message.id, editedText)
+                        editingMessage = null
+                    },
+                    enabled = editedText.isNotBlank()
+                ) {
+                    Text(stringResource(R.string.save_changes))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { editingMessage = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    deletingMessage?.let { message ->
+        AlertDialog(
+            onDismissRequest = { deletingMessage = null },
+            title = { Text(stringResource(R.string.delete_action)) },
+            text = { Text(message.text.ifBlank { stringResource(R.string.voice_message) }) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        repository.deleteMessage(message.id)
+                        deletingMessage = null
+                    }
+                ) {
+                    Text(stringResource(R.string.delete_action), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { deletingMessage = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    if (showDeleteConversation) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConversation = false },
+            title = { Text(stringResource(R.string.delete_action)) },
+            text = { Text(conversation.participant.displayName) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        repository.deleteConversation(conversation.id)
+                        showDeleteConversation = false
+                        onBack()
+                    }
+                ) {
+                    Text(stringResource(R.string.delete_action), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConversation = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
 }
 
 @Composable
-fun MessageBubble(msg: DirectMessage) {
+fun MessageBubble(
+    msg: DirectMessage,
+    onEdit: () -> Unit = {},
+    onDelete: () -> Unit = {}
+) {
     val bubbleColor = if (msg.isMine) AuraChampagne else MaterialTheme.colorScheme.surfaceVariant
     val textColor = if (msg.isMine) ObsidianVoid else MaterialTheme.colorScheme.onSurface
 
@@ -515,6 +618,47 @@ fun MessageBubble(msg: DirectMessage) {
                     tint = if (msg.status == MessageStatus.READ) AuraChampagne else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(12.dp)
                 )
+
+                var showMessageMenu by remember { mutableStateOf(false) }
+                Box {
+                    IconButton(
+                        onClick = { showMessageMenu = true },
+                        modifier = Modifier.size(26.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = stringResource(R.string.more_options),
+                            modifier = Modifier.size(15.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = showMessageMenu,
+                        onDismissRequest = { showMessageMenu = false }
+                    ) {
+                        if (msg.voiceDurationSeconds == null) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.edit_post)) },
+                                onClick = {
+                                    showMessageMenu = false
+                                    onEdit()
+                                }
+                            )
+                        }
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    stringResource(R.string.delete_action),
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            },
+                            onClick = {
+                                showMessageMenu = false
+                                onDelete()
+                            }
+                        )
+                    }
+                }
             }
         }
     }
