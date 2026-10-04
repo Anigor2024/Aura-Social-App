@@ -86,6 +86,7 @@ fun ProfileScreen(
     onNavigateToSettings: () -> Unit,
     onOpenStudio: () -> Unit = {},
     onOpenContentHub: () -> Unit = {},
+    onOpenMediaStudio: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
@@ -411,6 +412,41 @@ fun ProfileScreen(
                     }
                     Text(
                         stringResource(R.string.open_content_hub),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = AuraChampagne
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(AuraChampagne.copy(alpha = 0.07f))
+                        .border(1.dp, AuraChampagne.copy(alpha = 0.24f), RoundedCornerShape(18.dp))
+                        .clickable(onClick = onOpenMediaStudio)
+                        .padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = AuraChampagne)
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 10.dp)
+                    ) {
+                        Text(
+                            stringResource(R.string.media_studio),
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                        )
+                        Text(
+                            stringResource(R.string.media_studio_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Text(
+                        stringResource(R.string.open_media_studio),
                         style = MaterialTheme.typography.labelSmall,
                         color = AuraChampagne
                     )
