@@ -909,6 +909,40 @@ class SamrRepository {
         _threadMessages.value = _threadMessages.value + newMsg
     }
 
+    fun sendMediaMessage(
+        conversationId: String,
+        asset: MediaAsset,
+        caption: String = "",
+        replyToText: String? = null
+    ) {
+        val newMsg = DirectMessage(
+            id = "msg_${UUID.randomUUID().toString().take(8)}",
+            conversationId = conversationId,
+            senderId = _currentUser.value.id,
+            text = caption.trim(),
+            timestampFormatted = "الآن",
+            isMine = true,
+            mediaUrl = asset.uri,
+            mediaAsset = asset,
+            status = MessageStatus.SENT,
+            replyToText = replyToText
+        )
+        _threadMessages.value = _threadMessages.value + newMsg
+        _conversations.value = _conversations.value.map { conversation ->
+            if (conversation.id == conversationId) {
+                val label = when (asset.kind) {
+                    MediaKind.IMAGE -> "صورة"
+                    MediaKind.VIDEO -> "فيديو"
+                    MediaKind.AUDIO -> "ملف صوتي"
+                }
+                conversation.copy(
+                    lastMessage = caption.trim().ifBlank { label },
+                    lastTimestamp = "الآن"
+                )
+            } else conversation
+        }
+    }
+
     fun toggleJoinCommunity(communityId: String) {
         _communities.value = _communities.value.map {
             if (it.id == communityId) it.copy(isJoined = !it.isJoined) else it
@@ -1121,6 +1155,19 @@ class SamrRepository {
 
     fun deleteStory(storyId: String) {
         _stories.value = _stories.value.filterNot { it.id == storyId }
+    }
+
+    fun publishAssetAsStory(asset: MediaAsset, caption: String = "") {
+        if (asset.kind == MediaKind.AUDIO) return
+        val story = Story(
+            id = "story_${UUID.randomUUID().toString().take(8)}",
+            author = _currentUser.value,
+            mediaUrl = asset.uri,
+            mediaKind = asset.kind,
+            timestampMinutesAgo = 0,
+            caption = caption.trim().ifBlank { asset.title }
+        )
+        _stories.value = listOf(story) + _stories.value
     }
 
     fun markStoryViewed(storyId: String) {
