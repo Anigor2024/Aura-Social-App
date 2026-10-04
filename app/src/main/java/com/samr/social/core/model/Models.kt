@@ -80,11 +80,34 @@ data class PostPoll(
         get() = options.sumOf { it.votes }
 }
 
+enum class MediaKind { IMAGE, VIDEO, AUDIO }
+
+enum class MediaOrigin { IMPORTED, CAMERA, RECORDER, STUDIO }
+
+data class MediaAsset(
+    val id: String,
+    val uri: String,
+    val kind: MediaKind,
+    val origin: MediaOrigin,
+    val title: String,
+    val mimeType: String = "",
+    val durationMs: Long = 0L,
+    val trimStartMs: Long = 0L,
+    val trimEndMs: Long? = null,
+    val playbackSpeed: Float = 1f,
+    val isMuted: Boolean = false,
+    val filterName: String = "Original",
+    val overlayText: String = "",
+    val altText: String = "",
+    val isFavorite: Boolean = false
+)
+
 data class Post(
     val id: String,
     val author: User,
     val text: String,
     val mediaUrls: List<String> = emptyList(),
+    val mediaAssets: List<MediaAsset> = emptyList(),
     val timestampMinutesAgo: Int = 10,
     val likesCount: Int,
     val commentsCount: Int,
@@ -154,6 +177,7 @@ data class PostDraft(
     val id: String,
     val text: String,
     val mediaUrl: String? = null,
+    val mediaAssets: List<MediaAsset> = emptyList(),
     val locationTag: String = "",
     val altText: String = "",
     val updatedLabel: String = "الآن"
@@ -163,6 +187,7 @@ data class ScheduledPost(
     val id: String,
     val text: String,
     val mediaUrl: String? = null,
+    val mediaAssets: List<MediaAsset> = emptyList(),
     val scheduledLabel: String,
     val locationTag: String = "",
     val altText: String = ""
@@ -173,6 +198,9 @@ data class PrivacyPreferences(
     val allowMentions: Boolean = true,
     val showActivityStatus: Boolean = true,
     val sensitiveContentFilter: Boolean = true,
+    val allowMediaDownloads: Boolean = true,
+    val allowRemixes: Boolean = true,
+    val allowClipReuse: Boolean = true,
     val hiddenWords: List<String> = listOf("spam", "spoiler")
 )
 
