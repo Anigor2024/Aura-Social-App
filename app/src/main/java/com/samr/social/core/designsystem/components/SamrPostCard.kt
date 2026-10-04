@@ -77,6 +77,10 @@ fun SamrPostCard(
     onShareClick: () -> Unit,
     onAuthorClick: () -> Unit,
     onJoinRoomClick: ((String) -> Unit)? = null,
+    isOwner: Boolean = false,
+    onEditClick: () -> Unit = {},
+    onDeleteClick: () -> Unit = {},
+    onPinClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
@@ -184,6 +188,22 @@ fun SamrPostCard(
 
             // More Options Menu & Expiration badge
             Row(verticalAlignment = Alignment.CenterVertically) {
+                if (post.isPinned) {
+                    Box(
+                        modifier = Modifier
+                            .padding(end = 4.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(SamrChampagne.copy(alpha = 0.14f))
+                            .padding(horizontal = 7.dp, vertical = 3.dp)
+                    ) {
+                        Text(
+                            text = "PIN",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = SamrChampagne
+                        )
+                    }
+                }
+
                 if (post.lifetime != PostLifetime.PERMANENT) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -230,26 +250,55 @@ fun SamrPostCard(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false }
                     ) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.menu_copy_link)) },
-                            onClick = {
-                                showMenu = false
-                                onShareClick()
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.menu_mute_creator)) },
-                            onClick = { showMenu = false }
-                        )
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    stringResource(R.string.menu_report),
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                            },
-                            onClick = { showMenu = false }
-                        )
+                        if (isOwner) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.edit_post)) },
+                                onClick = {
+                                    showMenu = false
+                                    onEditClick()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.pin_post)) },
+                                onClick = {
+                                    showMenu = false
+                                    onPinClick()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        stringResource(R.string.delete_post),
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                },
+                                onClick = {
+                                    showMenu = false
+                                    onDeleteClick()
+                                }
+                            )
+                        } else {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.menu_copy_link)) },
+                                onClick = {
+                                    showMenu = false
+                                    onShareClick()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.menu_mute_creator)) },
+                                onClick = { showMenu = false }
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        stringResource(R.string.menu_report),
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                },
+                                onClick = { showMenu = false }
+                            )
+                        }
                     }
                 }
             }
@@ -387,7 +436,7 @@ fun SamrPostCard(
                         .scale(likeScale)
                         .size(20.dp)
                 )
-                if (!isQuietMode && post.likesCount > 0) {
+                if (!isQuietMode && !post.hideLikeCount && post.likesCount > 0) {
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = FormatUtils.formatCount(post.likesCount, isArabic),
@@ -498,6 +547,10 @@ fun AuraPostCard(
     onShareClick: () -> Unit,
     onAuthorClick: () -> Unit,
     onJoinRoomClick: ((String) -> Unit)? = null,
+    isOwner: Boolean = false,
+    onEditClick: () -> Unit = {},
+    onDeleteClick: () -> Unit = {},
+    onPinClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) = SamrPostCard(
     post = post,
@@ -509,5 +562,9 @@ fun AuraPostCard(
     onShareClick = onShareClick,
     onAuthorClick = onAuthorClick,
     onJoinRoomClick = onJoinRoomClick,
+    isOwner = isOwner,
+    onEditClick = onEditClick,
+    onDeleteClick = onDeleteClick,
+    onPinClick = onPinClick,
     modifier = modifier
 )
