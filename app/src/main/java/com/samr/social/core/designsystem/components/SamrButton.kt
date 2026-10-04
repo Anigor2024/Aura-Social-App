@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -33,13 +34,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.samr.social.ui.theme.AuraChampagne
-import com.samr.social.ui.theme.AuraChampagneLight
-import com.samr.social.ui.theme.ObsidianBorder
 import com.samr.social.ui.theme.ObsidianVoid
+import com.samr.social.ui.theme.SamrChampagne
+import com.samr.social.ui.theme.SamrChampagneLight
 
 @Composable
-fun AuraPrimaryButton(
+fun SamrPrimaryButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -53,7 +53,7 @@ fun AuraPrimaryButton(
     val scale by animateFloatAsState(if (isPressed) 0.97f else 1f, label = "button_scale")
 
     val gradient = Brush.horizontalGradient(
-        listOf(AuraChampagneLight, AuraChampagne)
+        listOf(SamrChampagneLight, SamrChampagne)
     )
 
     Box(
@@ -79,7 +79,7 @@ fun AuraPrimaryButton(
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (leadingIcon != null) {
-                androidx.compose.material3.Icon(
+                Icon(
                     imageVector = leadingIcon,
                     contentDescription = null,
                     tint = ObsidianVoid,
@@ -97,7 +97,7 @@ fun AuraPrimaryButton(
 }
 
 @Composable
-fun AuraSecondaryButton(
+fun SamrSecondaryButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -121,7 +121,7 @@ fun AuraSecondaryButton(
         contentPadding = PaddingValues(horizontal = 20.dp)
     ) {
         if (leadingIcon != null) {
-            androidx.compose.material3.Icon(
+            Icon(
                 imageVector = leadingIcon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurface,
@@ -135,3 +135,38 @@ fun AuraSecondaryButton(
         )
     }
 }
+
+// Deprecated compatibility aliases
+@Composable
+fun AuraPrimaryButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    leadingIcon: ImageVector? = null,
+    height: Dp = 50.dp
+) = SamrPrimaryButton(
+    text = text,
+    onClick = onClick,
+    modifier = modifier,
+    enabled = enabled,
+    leadingIcon = leadingIcon,
+    height = height
+)
+
+@Composable
+fun AuraSecondaryButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    leadingIcon: ImageVector? = null,
+    height: Dp = 46.dp
+) = SamrSecondaryButton(
+    text = text,
+    onClick = onClick,
+    modifier = modifier,
+    enabled = enabled,
+    leadingIcon = leadingIcon,
+    height = height
+)

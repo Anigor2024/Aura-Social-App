@@ -63,11 +63,11 @@ import com.samr.social.R
 import com.samr.social.core.model.Post
 import com.samr.social.core.model.PostLifetime
 import com.samr.social.core.util.FormatUtils
-import com.samr.social.ui.theme.AuraChampagne
-import com.samr.social.ui.theme.AuraRose
+import com.samr.social.ui.theme.SamrChampagne
+import com.samr.social.ui.theme.SamrRose
 
 @Composable
-fun AuraPostCard(
+fun SamrPostCard(
     post: Post,
     isQuietMode: Boolean,
     onLikeClick: () -> Unit,
@@ -90,7 +90,7 @@ fun AuraPostCard(
         label = "like_bounce"
     )
     val heartColor by animateColorAsState(
-        targetValue = if (post.isLiked) AuraRose else MaterialTheme.colorScheme.onSurfaceVariant,
+        targetValue = if (post.isLiked) SamrRose else MaterialTheme.colorScheme.onSurfaceVariant,
         label = "heart_color"
     )
 
@@ -121,7 +121,7 @@ fun AuraPostCard(
                     .weight(1f)
                     .clickable(onClick = onAuthorClick)
             ) {
-                AuraAvatar(
+                SamrAvatar(
                     imageUrl = post.author.avatarUrl,
                     name = post.author.displayName,
                     size = 42.dp,
@@ -145,7 +145,7 @@ fun AuraPostCard(
                             Text(
                                 text = " ${stringResource(R.string.collaborator_with)} ${post.collaborator.displayName}",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = AuraChampagne
+                                color = SamrChampagne
                             )
                         }
                     }
@@ -182,70 +182,75 @@ fun AuraPostCard(
                 }
             }
 
-            // Expiration badge if time limited
-            if (post.lifetime != PostLifetime.PERMANENT) {
-                val durationLabel = when (post.lifetime) {
-                    PostLifetime.HOURS_24 -> stringResource(R.string.expires_24h)
-                    PostLifetime.DAYS_3 -> stringResource(R.string.expires_3d)
-                    PostLifetime.DAYS_7 -> stringResource(R.string.expires_7d)
-                    else -> ""
-                }
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Timer,
-                        contentDescription = null,
-                        tint = AuraChampagne,
-                        modifier = Modifier.size(13.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = durationLabel,
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                        color = AuraChampagne
-                    )
-                }
-            }
-
-            // Options Overflow Menu
-            Box {
-                IconButton(
-                    onClick = { showMenu = true },
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.MoreVert,
-                        contentDescription = stringResource(R.string.post_options),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(18.dp)
-                    )
+            // More Options Menu & Expiration badge
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (post.lifetime != PostLifetime.PERMANENT) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .padding(end = 4.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Timer,
+                            contentDescription = stringResource(R.string.time_limited_post),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = when (post.lifetime) {
+                                PostLifetime.HOURS_24 -> stringResource(R.string.expires_24h)
+                                PostLifetime.DAYS_3 -> stringResource(R.string.expires_3d)
+                                PostLifetime.DAYS_7 -> stringResource(R.string.expires_7d)
+                                PostLifetime.PERMANENT -> ""
+                            },
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
 
-                DropdownMenu(
-                    expanded = showMenu,
-                    onDismissRequest = { showMenu = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.not_interested)) },
-                        onClick = { showMenu = false }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.copy_link)) },
-                        onClick = { showMenu = false }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.mute_user, post.author.displayName)) },
-                        onClick = { showMenu = false }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.report_post)) },
-                        onClick = { showMenu = false }
-                    )
+                Box {
+                    IconButton(
+                        onClick = { showMenu = true },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.MoreVert,
+                            contentDescription = stringResource(R.string.more_options),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.menu_copy_link)) },
+                            onClick = {
+                                showMenu = false
+                                onShareClick()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.menu_mute_creator)) },
+                            onClick = { showMenu = false }
+                        )
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    stringResource(R.string.menu_report),
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            },
+                            onClick = { showMenu = false }
+                        )
+                    }
                 }
             }
         }
@@ -260,64 +265,104 @@ fun AuraPostCard(
             lineHeight = 24.sp
         )
 
-        // Post Media (Image / Carousel)
+        // Post Media Attachments
         if (post.mediaUrls.isNotEmpty()) {
             Spacer(modifier = Modifier.height(12.dp))
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(post.mediaUrls.first())
-                    .crossfade(true)
-                    .build(),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
+            val firstMedia = post.mediaUrls.first()
+
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(240.dp)
-                    .clip(RoundedCornerShape(14.dp))
+                    .height(260.dp)
+                    .clip(RoundedCornerShape(16.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant)
-            )
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(firstMedia)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = stringResource(R.string.post_media_desc),
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                if (post.mediaUrls.size > 1) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(8.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color.Black.copy(alpha = 0.65f))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = "1/${post.mediaUrls.size}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White
+                        )
+                    }
+                }
+            }
         }
 
-        // Discussion Room Banner (Exclusive Feature)
-        if (post.discussionRoomId != null && onJoinRoomClick != null) {
-            Spacer(modifier = Modifier.height(10.dp))
+        // Attached Active Discussion Room Indicator
+        if (post.roomTopic != null) {
+            Spacer(modifier = Modifier.height(12.dp))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(AuraChampagne.copy(alpha = 0.1f))
-                    .border(1.dp, AuraChampagne.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
-                    .clickable { onJoinRoomClick(post.discussionRoomId) }
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(SamrChampagne.copy(alpha = 0.12f))
+                    .border(1.dp, SamrChampagne.copy(alpha = 0.35f), RoundedCornerShape(14.dp))
+                    .clickable {
+                        view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                        onJoinRoomClick?.invoke(post.id)
+                    }
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = Icons.Filled.Forum,
-                        contentDescription = null,
-                        tint = AuraChampagne,
-                        modifier = Modifier.size(18.dp)
+                        imageVector = Icons.Default.Forum,
+                        contentDescription = stringResource(R.string.live_discussion_room),
+                        tint = SamrChampagne,
+                        modifier = Modifier.size(20.dp)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column {
+                        Text(
+                            text = stringResource(R.string.live_discussion_room),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = SamrChampagne
+                        )
+                        Text(
+                            text = post.roomTopic,
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(SamrChampagne)
+                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                ) {
                     Text(
-                        text = stringResource(R.string.view_discussion_room),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = AuraChampagne
+                        text = stringResource(R.string.join_room),
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        color = Color.Black
                     )
                 }
-                Text(
-                    text = stringResource(R.string.live_badge),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = AuraRose,
-                    fontWeight = FontWeight.Bold
-                )
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
-        // Action Interactions Bar
+        // Interaction Action Row
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -333,22 +378,21 @@ fun AuraPostCard(
                         onLikeClick()
                     }
                     .padding(horizontal = 6.dp, vertical = 4.dp)
-                    .testTag("like_button_${post.id}")
             ) {
                 Icon(
-                    imageVector = if (post.isLiked) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
+                    imageVector = if (post.isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                     contentDescription = stringResource(R.string.like),
                     tint = heartColor,
                     modifier = Modifier
                         .scale(likeScale)
                         .size(20.dp)
                 )
-                if (!isQuietMode) {
+                if (!isQuietMode && post.likesCount > 0) {
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = FormatUtils.formatCount(post.likesCount, isArabic),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = if (post.isLiked) SamrRose else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -363,7 +407,6 @@ fun AuraPostCard(
                         onCommentClick()
                     }
                     .padding(horizontal = 6.dp, vertical = 4.dp)
-                    .testTag("comment_button_${post.id}")
             ) {
                 Icon(
                     imageVector = Icons.Outlined.ChatBubbleOutline,
@@ -371,7 +414,7 @@ fun AuraPostCard(
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)
                 )
-                if (!isQuietMode) {
+                if (!isQuietMode && post.commentsCount > 0) {
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = FormatUtils.formatCount(post.commentsCount, isArabic),
@@ -419,7 +462,7 @@ fun AuraPostCard(
                 Icon(
                     imageVector = if (post.isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
                     contentDescription = stringResource(R.string.bookmark),
-                    tint = if (post.isBookmarked) AuraChampagne else MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = if (post.isBookmarked) SamrChampagne else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -442,3 +485,29 @@ fun AuraPostCard(
         }
     }
 }
+
+// Deprecated compatibility alias
+@Composable
+fun AuraPostCard(
+    post: Post,
+    isQuietMode: Boolean,
+    onLikeClick: () -> Unit,
+    onCommentClick: () -> Unit,
+    onBookmarkClick: () -> Unit,
+    onRepostClick: () -> Unit,
+    onShareClick: () -> Unit,
+    onAuthorClick: () -> Unit,
+    onJoinRoomClick: ((String) -> Unit)? = null,
+    modifier: Modifier = Modifier
+) = SamrPostCard(
+    post = post,
+    isQuietMode = isQuietMode,
+    onLikeClick = onLikeClick,
+    onCommentClick = onCommentClick,
+    onBookmarkClick = onBookmarkClick,
+    onRepostClick = onRepostClick,
+    onShareClick = onShareClick,
+    onAuthorClick = onAuthorClick,
+    onJoinRoomClick = onJoinRoomClick,
+    modifier = modifier
+)

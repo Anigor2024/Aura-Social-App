@@ -182,8 +182,46 @@
     <string name="theme_system">System Default</string>
     <string name="theme_light">Alabaster Light</string>
     <string name="theme_dark">Obsidian Dark</string>
+    <string name="theme_oled">OLED Deep Black</string>
     <string name="logout">Sign Out</string>
     <string name="delete_account">Delete Account</string>
+    <string name="delete_account_dialog_title">Delete Account (Demo Mode)</string>
+    <string name="delete_account_dialog_desc">In this showcase build, your session is stored locally. In the production release with Firebase Authentication, deleting your account permanently purges your credentials, media, and private circles following secure re-authentication.</string>
+    <string name="clear_local_session">Reset Local Session</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="account_details_title">Account Information</string>
+    <string name="account_id_label">Account ID</string>
+    <string name="account_status_label">Account Status</string>
+    <string name="account_status_demo">Showcase Persona</string>
+    <string name="privacy_title">Privacy &amp; Circles Controls</string>
+    <string name="privacy_circles_hint">Circles membership is strictly private and never exposed to other members.</string>
+    <string name="read_receipts">Read Receipts</string>
+    <string name="read_receipts_desc">Allow others to see when you have read their direct messages</string>
+    <string name="activity_status">Show Online Status</string>
+    <string name="activity_status_desc">Display an active indicator when you are exploring SAMR</string>
+    <string name="security_title">Security Center</string>
+    <string name="security_desc">SAMR uses zero-trust security architecture. Client connections and media endpoints are prepared for Firebase App Check and authenticated token verification.</string>
+    <string name="notifications_title">Notification Preferences</string>
+    <string name="notif_circles">Circles Mentions &amp; Invites</string>
+    <string name="notif_messages">Direct Messages &amp; Audio Notes</string>
+    <string name="notif_digest">Smart Catch-Up Digest</string>
+    <string name="bio">Bio</string>
+    <string name="highlights_riyadh">Riyadh</string>
+    <string name="highlights_diriyah">Diriyah</string>
+    <string name="highlights_design">Design</string>
+    <string name="highlights_projects">Projects</string>
+    <string name="highlights_journeys">Journeys</string>
+
+    <!-- Demo & Auth -->
+    <string name="demo_mode_badge">Showcase Experience</string>
+    <string name="demo_auth_desc">Explore SAMR as an authenticated showcase creator with full access to private circles, vertical clips, and messaging.</string>
+    <string name="explore_demo">Explore Showcase Demo</string>
+    <string name="sign_in">Sign In</string>
+    <string name="create_account">Create Account</string>
+    <string name="auth_disclaimer">Production authentication via Google Sign-In &amp; OTP will connect to Firebase backend.</string>
+    <string name="select_social_layer">Select Social Layer</string>
+    <string name="full_name">Full Name</string>
 
     <!-- States & Accessibility -->
     <string name="loading">Loading...</string>

@@ -48,18 +48,20 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.samr.social.R
-import com.samr.social.ui.theme.AuraChampagne
-import com.samr.social.ui.theme.AuraViolet
 import com.samr.social.ui.theme.ObsidianVoid
+import com.samr.social.ui.theme.SamrChampagne
+import com.samr.social.ui.theme.SamrViolet
 
-enum class AuraNavigationTab {
+enum class SamrNavigationTab {
     HOME, DISCOVER, CREATE, CLIPS, INBOX, PROFILE
 }
 
+typealias AuraNavigationTab = SamrNavigationTab
+
 @Composable
-fun AuraBottomBar(
-    currentTab: AuraNavigationTab,
-    onTabSelected: (AuraNavigationTab) -> Unit,
+fun SamrBottomBar(
+    currentTab: SamrNavigationTab,
+    onTabSelected: (SamrNavigationTab) -> Unit,
     unreadMessagesCount: Int = 0,
     userAvatarUrl: String? = null,
     modifier: Modifier = Modifier
@@ -89,25 +91,25 @@ fun AuraBottomBar(
         ) {
             // Home Tab
             BottomNavItem(
-                selected = currentTab == AuraNavigationTab.HOME,
+                selected = currentTab == SamrNavigationTab.HOME,
                 selectedIcon = Icons.Filled.Home,
                 unselectedIcon = Icons.Outlined.Home,
                 label = stringResource(R.string.nav_home),
                 onClick = {
                     view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-                    onTabSelected(AuraNavigationTab.HOME)
+                    onTabSelected(SamrNavigationTab.HOME)
                 }
             )
 
             // Discover Tab
             BottomNavItem(
-                selected = currentTab == AuraNavigationTab.DISCOVER,
+                selected = currentTab == SamrNavigationTab.DISCOVER,
                 selectedIcon = Icons.Filled.Explore,
                 unselectedIcon = Icons.Outlined.Explore,
                 label = stringResource(R.string.nav_discover),
                 onClick = {
                     view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-                    onTabSelected(AuraNavigationTab.DISCOVER)
+                    onTabSelected(SamrNavigationTab.DISCOVER)
                 }
             )
 
@@ -117,11 +119,11 @@ fun AuraBottomBar(
                     .size(46.dp)
                     .clip(CircleShape)
                     .background(
-                        Brush.linearGradient(listOf(AuraChampagne, AuraViolet))
+                        Brush.linearGradient(listOf(SamrChampagne, SamrViolet))
                     )
                     .clickable {
                         view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-                        onTabSelected(AuraNavigationTab.CREATE)
+                        onTabSelected(SamrNavigationTab.CREATE)
                     },
                 contentAlignment = Alignment.Center
             ) {
@@ -135,43 +137,59 @@ fun AuraBottomBar(
 
             // Clips Tab
             BottomNavItem(
-                selected = currentTab == AuraNavigationTab.CLIPS,
+                selected = currentTab == SamrNavigationTab.CLIPS,
                 selectedIcon = Icons.Filled.PlayCircle,
                 unselectedIcon = Icons.Outlined.PlayCircleOutline,
                 label = stringResource(R.string.nav_clips),
                 onClick = {
                     view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-                    onTabSelected(AuraNavigationTab.CLIPS)
+                    onTabSelected(SamrNavigationTab.CLIPS)
                 }
             )
 
             // Inbox Tab with Badge
             BottomNavItem(
-                selected = currentTab == AuraNavigationTab.INBOX,
+                selected = currentTab == SamrNavigationTab.INBOX,
                 selectedIcon = Icons.Filled.ChatBubble,
                 unselectedIcon = Icons.Outlined.ChatBubbleOutline,
                 label = stringResource(R.string.nav_inbox),
                 badgeCount = unreadMessagesCount,
                 onClick = {
                     view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-                    onTabSelected(AuraNavigationTab.INBOX)
+                    onTabSelected(SamrNavigationTab.INBOX)
                 }
             )
 
             // Profile Tab
             BottomNavItem(
-                selected = currentTab == AuraNavigationTab.PROFILE,
+                selected = currentTab == SamrNavigationTab.PROFILE,
                 selectedIcon = Icons.Filled.Person,
                 unselectedIcon = Icons.Outlined.PersonOutline,
                 label = stringResource(R.string.nav_profile),
                 onClick = {
                     view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-                    onTabSelected(AuraNavigationTab.PROFILE)
+                    onTabSelected(SamrNavigationTab.PROFILE)
                 }
             )
         }
     }
 }
+
+// Deprecated compatibility alias
+@Composable
+fun AuraBottomBar(
+    currentTab: SamrNavigationTab,
+    onTabSelected: (SamrNavigationTab) -> Unit,
+    unreadMessagesCount: Int = 0,
+    userAvatarUrl: String? = null,
+    modifier: Modifier = Modifier
+) = SamrBottomBar(
+    currentTab = currentTab,
+    onTabSelected = onTabSelected,
+    unreadMessagesCount = unreadMessagesCount,
+    userAvatarUrl = userAvatarUrl,
+    modifier = modifier
+)
 
 @Composable
 private fun BottomNavItem(
@@ -183,7 +201,7 @@ private fun BottomNavItem(
     badgeCount: Int = 0
 ) {
     val iconColor by animateColorAsState(
-        if (selected) AuraChampagne else MaterialTheme.colorScheme.onSurfaceVariant,
+        if (selected) SamrChampagne else MaterialTheme.colorScheme.onSurfaceVariant,
         label = "nav_icon_color"
     )
     val scale by animateFloatAsState(if (selected) 1.15f else 1.0f, label = "nav_icon_scale")
@@ -203,7 +221,7 @@ private fun BottomNavItem(
             BadgedBox(
                 badge = {
                     Badge(
-                        containerColor = AuraChampagne,
+                        containerColor = SamrChampagne,
                         contentColor = ObsidianVoid
                     ) {
                         Text(text = badgeCount.toString())
@@ -236,7 +254,7 @@ private fun BottomNavItem(
                     .padding(top = 3.dp)
                     .size(4.dp)
                     .clip(CircleShape)
-                    .background(AuraChampagne)
+                    .background(SamrChampagne)
             )
         }
     }

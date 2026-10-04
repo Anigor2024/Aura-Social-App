@@ -33,13 +33,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun AuraShimmerBrush(): Brush {
+fun SamrShimmerBrush(): Brush {
     val shimmerColors = listOf(
         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
@@ -65,8 +64,8 @@ fun AuraShimmerBrush(): Brush {
 }
 
 @Composable
-fun PostCardSkeleton(modifier: Modifier = Modifier) {
-    val brush = AuraShimmerBrush()
+fun SamrPostCardSkeleton(modifier: Modifier = Modifier) {
+    val brush = SamrShimmerBrush()
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -126,7 +125,7 @@ fun PostCardSkeleton(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun AuraEmptyState(
+fun SamrEmptyState(
     title: String,
     description: String,
     modifier: Modifier = Modifier,
@@ -171,7 +170,7 @@ fun AuraEmptyState(
         )
         if (actionText != null && onActionClick != null) {
             Spacer(modifier = Modifier.height(24.dp))
-            AuraSecondaryButton(
+            SamrSecondaryButton(
                 text = actionText,
                 onClick = onActionClick
             )
@@ -180,7 +179,7 @@ fun AuraEmptyState(
 }
 
 @Composable
-fun AuraOfflineBanner(
+fun SamrOfflineBanner(
     text: String,
     modifier: Modifier = Modifier
 ) {
@@ -205,3 +204,33 @@ fun AuraOfflineBanner(
         )
     }
 }
+
+// Deprecated compatibility aliases
+@Composable
+fun AuraShimmerBrush() = SamrShimmerBrush()
+
+@Composable
+fun PostCardSkeleton(modifier: Modifier = Modifier) = SamrPostCardSkeleton(modifier)
+
+@Composable
+fun AuraEmptyState(
+    title: String,
+    description: String,
+    modifier: Modifier = Modifier,
+    icon: ImageVector = Icons.Outlined.Inbox,
+    actionText: String? = null,
+    onActionClick: (() -> Unit)? = null
+) = SamrEmptyState(
+    title = title,
+    description = description,
+    modifier = modifier,
+    icon = icon,
+    actionText = actionText,
+    onActionClick = onActionClick
+)
+
+@Composable
+fun AuraOfflineBanner(
+    text: String,
+    modifier: Modifier = Modifier
+) = SamrOfflineBanner(text = text, modifier = modifier)

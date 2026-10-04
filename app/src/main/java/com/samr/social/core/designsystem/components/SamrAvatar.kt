@@ -25,13 +25,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.samr.social.R
-import com.samr.social.ui.theme.AuraChampagne
-import com.samr.social.ui.theme.AuraViolet
+import com.samr.social.ui.theme.SamrChampagne
+import com.samr.social.ui.theme.SamrViolet
 import com.samr.social.ui.theme.StatusOnline
 import com.samr.social.ui.theme.VerifiedBadgeColor
 
 @Composable
-fun AuraAvatar(
+fun SamrAvatar(
     imageUrl: String?,
     name: String,
     modifier: Modifier = Modifier,
@@ -43,7 +43,7 @@ fun AuraAvatar(
     onClick: (() -> Unit)? = null
 ) {
     val ringBrush = when {
-        hasStory && !isStoryViewed -> Brush.sweepGradient(listOf(AuraChampagne, AuraViolet, AuraChampagne))
+        hasStory && !isStoryViewed -> Brush.sweepGradient(listOf(SamrChampagne, SamrViolet, SamrChampagne))
         hasStory && isStoryViewed -> Brush.linearGradient(listOf(Color.Gray.copy(alpha = 0.5f), Color.Gray.copy(alpha = 0.5f)))
         else -> null
     }
@@ -123,3 +123,27 @@ fun AuraAvatar(
         }
     }
 }
+
+// Deprecated compatibility alias
+@Composable
+fun AuraAvatar(
+    imageUrl: String?,
+    name: String,
+    modifier: Modifier = Modifier,
+    size: Dp = 44.dp,
+    hasStory: Boolean = false,
+    isStoryViewed: Boolean = false,
+    isOnline: Boolean = false,
+    isVerified: Boolean = false,
+    onClick: (() -> Unit)? = null
+) = SamrAvatar(
+    imageUrl = imageUrl,
+    name = name,
+    modifier = modifier,
+    size = size,
+    hasStory = hasStory,
+    isStoryViewed = isStoryViewed,
+    isOnline = isOnline,
+    isVerified = isVerified,
+    onClick = onClick
+)

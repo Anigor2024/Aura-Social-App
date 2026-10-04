@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -47,14 +46,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.samr.social.R
 import com.samr.social.core.model.SocialLayer
-import com.samr.social.ui.theme.AuraChampagne
 import com.samr.social.ui.theme.LayerCreative
 import com.samr.social.ui.theme.LayerPersonal
 import com.samr.social.ui.theme.LayerProfessional
 import com.samr.social.ui.theme.LayerTech
+import com.samr.social.ui.theme.SamrChampagne
 
 @Composable
-fun AuraTopBar(
+fun SamrTopBar(
     currentLayer: SocialLayer,
     onLayerSelected: (SocialLayer) -> Unit,
     isQuietMode: Boolean,
@@ -94,8 +93,7 @@ fun AuraTopBar(
                     text = stringResource(R.string.brand_name_arabic),
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp,
-                        color = AuraChampagne
+                        color = SamrChampagne
                     )
                 )
 
@@ -129,7 +127,7 @@ fun AuraTopBar(
                         )
                         Icon(
                             imageVector = Icons.Outlined.KeyboardArrowDown,
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.select_social_layer),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(16.dp)
                         )
@@ -175,7 +173,7 @@ fun AuraTopBar(
                     Icon(
                         imageVector = if (isQuietMode) Icons.AutoMirrored.Outlined.VolumeMute else Icons.AutoMirrored.Outlined.VolumeUp,
                         contentDescription = stringResource(R.string.quiet_feed_mode),
-                        tint = if (isQuietMode) AuraChampagne else MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = if (isQuietMode) SamrChampagne else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(22.dp)
                     )
                 }
@@ -219,18 +217,38 @@ fun AuraTopBar(
                     .fillMaxWidth()
                     .padding(top = 4.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(AuraChampagne.copy(alpha = 0.12f))
+                    .background(SamrChampagne.copy(alpha = 0.12f))
                     .padding(horizontal = 10.dp, vertical = 4.dp)
             ) {
                 Text(
                     text = stringResource(R.string.quiet_feed_active_hint),
                     style = MaterialTheme.typography.bodySmall,
-                    color = AuraChampagne
+                    color = SamrChampagne
                 )
             }
         }
     }
 }
+
+// Deprecated compatibility alias
+@Composable
+fun AuraTopBar(
+    currentLayer: SocialLayer,
+    onLayerSelected: (SocialLayer) -> Unit,
+    isQuietMode: Boolean,
+    onToggleQuietMode: () -> Unit,
+    onCatchUpClick: () -> Unit,
+    onSearchClick: () -> Unit,
+    modifier: Modifier = Modifier
+) = SamrTopBar(
+    currentLayer = currentLayer,
+    onLayerSelected = onLayerSelected,
+    isQuietMode = isQuietMode,
+    onToggleQuietMode = onToggleQuietMode,
+    onCatchUpClick = onCatchUpClick,
+    onSearchClick = onSearchClick,
+    modifier = modifier
+)
 
 @Composable
 fun getLayerLabel(layer: SocialLayer): String {
