@@ -616,7 +616,7 @@ fun CreatePostScreen(
                     )
                     draftSaved = true
                 },
-                enabled = postText.isNotBlank() || attachedImageUrl != null,
+                enabled = postText.isNotBlank() || attachedImageUrl != null || attachedMediaAssets.isNotEmpty(),
                 modifier = Modifier.weight(1f)
             ) {
                 Icon(Icons.Default.Drafts, contentDescription = null, modifier = Modifier.size(17.dp))
@@ -638,7 +638,7 @@ fun CreatePostScreen(
                         scheduledSaved = true
                     }
                 },
-                enabled = scheduleLabel.isNotBlank() && (postText.isNotBlank() || attachedImageUrl != null),
+                enabled = scheduleLabel.isNotBlank() && (postText.isNotBlank() || attachedImageUrl != null || attachedMediaAssets.isNotEmpty()),
                 modifier = Modifier.weight(1f)
             ) {
                 Icon(Icons.Default.Schedule, contentDescription = null, modifier = Modifier.size(17.dp))
