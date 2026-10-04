@@ -30,6 +30,7 @@ import com.samr.social.core.repository.SamrRepository
 import com.samr.social.core.util.LocaleManager
 import com.samr.social.core.util.SessionManager
 import com.samr.social.core.util.ThemeManager
+import com.samr.social.features.activity.ActivityCenterScreen
 import com.samr.social.features.auth.AuthScreen
 import com.samr.social.features.chat.ChatScreen
 import com.samr.social.features.clips.ClipsScreen
@@ -83,11 +84,13 @@ fun SamrApp(
     var currentTab by remember { mutableStateOf(SamrNavigationTab.HOME) }
     var isCreatingPost by remember { mutableStateOf(false) }
     var isViewingSettings by remember { mutableStateOf(false) }
+    var isViewingActivity by remember { mutableStateOf(false) }
     var showCatchUpDialog by remember { mutableStateOf(false) }
 
     val activeLayer by repository.activeLayer.collectAsState()
     val isQuietMode by repository.isQuietMode.collectAsState()
     val currentUser by repository.currentUser.collectAsState()
+    val notifications by repository.notifications.collectAsState()
 
     when {
         !hasSelectedLanguage || isSelectingLanguage -> {
@@ -106,6 +109,14 @@ fun SamrApp(
         !isDemoSession -> {
             AuthScreen(
                 onAuthSuccess = { sessionManager.startDemoSession() }
+            )
+        }
+
+        isViewingActivity -> {
+            BackHandler { isViewingActivity = false }
+            ActivityCenterScreen(
+                repository = repository,
+                onBack = { isViewingActivity = false }
             )
         }
 
@@ -149,7 +160,9 @@ fun SamrApp(
                             isQuietMode = isQuietMode,
                             onToggleQuietMode = { repository.toggleQuietMode() },
                             onCatchUpClick = { showCatchUpDialog = true },
-                            onSearchClick = { currentTab = SamrNavigationTab.DISCOVER }
+                            onSearchClick = { currentTab = SamrNavigationTab.DISCOVER },
+                            onNotificationsClick = { isViewingActivity = true },
+                            unreadNotificationsCount = notifications.count { !it.isRead }
                         )
                     }
                 },
