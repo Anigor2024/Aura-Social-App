@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
     private val localeManager by lazy { LocaleManager(applicationContext) }
     private val themeManager by lazy { ThemeManager(applicationContext) }
     private val sessionManager by lazy { SessionManager(applicationContext) }
-    private val repository by lazy { SamrRepository() }
+    private val repository by lazy { SamrRepository(applicationContext) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
