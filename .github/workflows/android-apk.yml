@@ -61,7 +61,6 @@ jobs:
         run: |
           if gh release view preview >/dev/null 2>&1; then
             gh release upload preview public/SAMR-preview.apk --clobber
-            gh release edit preview --title "SAMR Preview" --notes "Latest installable SAMR Android showcase build. This preview is demo-backed; production cloud backend integration is a separate phase."
           else
             gh release create preview public/SAMR-preview.apk --target "${GITHUB_SHA}" --title "SAMR Preview" --notes "Latest installable SAMR Android showcase build. This preview is demo-backed; production cloud backend integration is a separate phase." --prerelease
           fi
