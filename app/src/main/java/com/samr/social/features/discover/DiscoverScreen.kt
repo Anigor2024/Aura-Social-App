@@ -67,7 +67,36 @@ fun DiscoverScreen(
     val view = LocalView.current
     var searchQuery by remember { mutableStateOf("") }
     val communities by repository.communities.collectAsState()
+    val posts by repository.posts.collectAsState()
     val isArabic = LocalLayoutDirection.current == LayoutDirection.Rtl
+
+    val creatorResults = remember(searchQuery, posts) {
+        if (searchQuery.isBlank()) {
+            emptyList()
+        } else {
+            val q = searchQuery.trim().removePrefix("#")
+            posts.map { it.author }
+                .distinctBy { it.id }
+                .filter {
+                    it.displayName.contains(q, ignoreCase = true) ||
+                        it.username.contains(q, ignoreCase = true) ||
+                        it.bio.contains(q, ignoreCase = true)
+                }
+        }
+    }
+
+    val visibleCommunities = remember(searchQuery, communities) {
+        if (searchQuery.isBlank()) {
+            communities
+        } else {
+            val q = searchQuery.trim().removePrefix("#")
+            communities.filter {
+                it.name.contains(q, ignoreCase = true) ||
+                    it.description.contains(q, ignoreCase = true) ||
+                    it.category.contains(q, ignoreCase = true)
+            }
+        }
+    }
 
     val trendingTags = listOf(
         "#الرياض", "#تصميم", "#تقنية", "#الدرعية",
@@ -167,6 +196,75 @@ fun DiscoverScreen(
             }
         }
 
+        if (searchQuery.isNotBlank()) {
+            item {
+                Text(
+                    text = stringResource(R.string.people_results),
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
+                )
+            }
+
+            if (creatorResults.isEmpty() && visibleCommunities.isEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.no_results),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp)
+                    )
+                }
+            } else {
+                items(creatorResults, key = { it.id }) { user ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(onClick = onNavigateToProfile)
+                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        AuraAvatar(
+                            imageUrl = user.avatarUrl,
+                            name = user.displayName,
+                            size = 46.dp,
+                            isVerified = user.isVerified
+                        )
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(horizontal = 12.dp)
+                        ) {
+                            Text(
+                                user.displayName,
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold)
+                            )
+                            Text(
+                                "@${user.username}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(
+                                    if (user.isFollowing) MaterialTheme.colorScheme.surfaceVariant else AuraChampagne
+                                )
+                                .clickable {
+                                    repository.toggleFollow(user.id)
+                                }
+                                .padding(horizontal = 14.dp, vertical = 7.dp)
+                        ) {
+                            Text(
+                                text = if (user.isFollowing) stringResource(R.string.following) else stringResource(R.string.follow),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = if (user.isFollowing) MaterialTheme.colorScheme.onSurface else Color.Black
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
         // Communities Header
         item {
             Spacer(modifier = Modifier.height(16.dp))
@@ -186,7 +284,7 @@ fun DiscoverScreen(
         }
 
         // Communities Cards
-        items(communities, key = { it.id }) { community ->
+        items(visibleCommunities, key = { it.id }) { community ->
             CommunityCard(
                 community = community,
                 isArabic = isArabic,
