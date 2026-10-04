@@ -10,6 +10,8 @@ import com.samr.social.core.model.Conversation
 import com.samr.social.core.model.DirectMessage
 import com.samr.social.core.model.MajlisRoom
 import com.samr.social.core.model.MajlisStatus
+import com.samr.social.core.model.MediaAsset
+import com.samr.social.core.model.MediaKind
 import com.samr.social.core.model.MessageStatus
 import com.samr.social.core.model.MoodType
 import com.samr.social.core.model.PollOption
@@ -442,6 +444,9 @@ class SamrRepository {
     )
     val privacyPreferences: StateFlow<PrivacyPreferences> = _privacyPreferences.asStateFlow()
 
+    private val _mediaLibrary = MutableStateFlow<List<MediaAsset>>(emptyList())
+    val mediaLibrary: StateFlow<List<MediaAsset>> = _mediaLibrary.asStateFlow()
+
     private val _experiencePreferences = MutableStateFlow(ExperiencePreferences())
     val experiencePreferences: StateFlow<ExperiencePreferences> = _experiencePreferences.asStateFlow()
 
@@ -838,13 +843,15 @@ class SamrRepository {
         pollQuestion: String? = null,
         pollOptions: List<String> = emptyList(),
         locationTag: String? = null,
-        altText: String? = null
+        altText: String? = null,
+        mediaAssets: List<MediaAsset> = emptyList()
     ) {
         val newPost = Post(
             id = "post_${UUID.randomUUID().toString().take(8)}",
             author = _currentUser.value,
             text = text,
             mediaUrls = mediaUrls,
+            mediaAssets = mediaAssets.take(10),
             timestampMinutesAgo = 1,
             likesCount = 0,
             commentsCount = 0,
@@ -1161,13 +1168,19 @@ class SamrRepository {
         allowMentions: Boolean,
         showActivityStatus: Boolean,
         sensitiveContentFilter: Boolean,
-        hiddenWords: List<String>
+        hiddenWords: List<String>,
+        allowMediaDownloads: Boolean = _privacyPreferences.value.allowMediaDownloads,
+        allowRemixes: Boolean = _privacyPreferences.value.allowRemixes,
+        allowClipReuse: Boolean = _privacyPreferences.value.allowClipReuse
     ) {
         _privacyPreferences.value = PrivacyPreferences(
             allowMessages = allowMessages,
             allowMentions = allowMentions,
             showActivityStatus = showActivityStatus,
             sensitiveContentFilter = sensitiveContentFilter,
+            allowMediaDownloads = allowMediaDownloads,
+            allowRemixes = allowRemixes,
+            allowClipReuse = allowClipReuse,
             hiddenWords = hiddenWords
                 .map { it.trim() }
                 .filter { it.isNotBlank() }
@@ -1198,13 +1211,15 @@ class SamrRepository {
         text: String,
         mediaUrl: String?,
         locationTag: String,
-        altText: String
+        altText: String,
+        mediaAssets: List<MediaAsset> = emptyList()
     ) {
-        if (text.isBlank() && mediaUrl.isNullOrBlank()) return
+        if (text.isBlank() && mediaUrl.isNullOrBlank() && mediaAssets.isEmpty()) return
         val draft = PostDraft(
             id = "draft_${UUID.randomUUID().toString().take(8)}",
             text = text.trim(),
             mediaUrl = mediaUrl?.trim()?.takeIf { it.isNotBlank() },
+            mediaAssets = mediaAssets.take(10),
             locationTag = locationTag.trim(),
             altText = altText.trim(),
             updatedLabel = "الآن"
@@ -1221,13 +1236,15 @@ class SamrRepository {
         mediaUrl: String?,
         scheduledLabel: String,
         locationTag: String,
-        altText: String
+        altText: String,
+        mediaAssets: List<MediaAsset> = emptyList()
     ) {
-        if (text.isBlank() && mediaUrl.isNullOrBlank()) return
+        if (text.isBlank() && mediaUrl.isNullOrBlank() && mediaAssets.isEmpty()) return
         val scheduled = ScheduledPost(
             id = "scheduled_${UUID.randomUUID().toString().take(8)}",
             text = text.trim(),
             mediaUrl = mediaUrl?.trim()?.takeIf { it.isNotBlank() },
+            mediaAssets = mediaAssets.take(10),
             scheduledLabel = scheduledLabel.trim().ifBlank { "لاحقًا" },
             locationTag = locationTag.trim(),
             altText = altText.trim()
@@ -1248,9 +1265,59 @@ class SamrRepository {
             lifetime = PostLifetime.PERMANENT,
             collaborator = null,
             locationTag = scheduled.locationTag,
-            altText = scheduled.altText
+            altText = scheduled.altText,
+            mediaAssets = scheduled.mediaAssets
         )
         deleteScheduledPost(postId)
+    }
+
+    fun addMediaAsset(asset: MediaAsset) {
+        _mediaLibrary.value = listOf(asset) + _mediaLibrary.value.filterNot { it.id == asset.id }
+    }
+
+    fun addMediaAssets(assets: List<MediaAsset>) {
+        assets.reversed().forEach(::addMediaAsset)
+    }
+
+    fun updateMediaAsset(asset: MediaAsset) {
+        _mediaLibrary.value = _mediaLibrary.value.map {
+            if (it.id == asset.id) asset else it
+        }
+    }
+
+    fun deleteMediaAsset(assetId: String) {
+        _mediaLibrary.value = _mediaLibrary.value.filterNot { it.id == assetId }
+    }
+
+    fun duplicateMediaAsset(assetId: String) {
+        val source = _mediaLibrary.value.firstOrNull { it.id == assetId } ?: return
+        addMediaAsset(
+            source.copy(
+                id = "media_${UUID.randomUUID().toString().take(8)}",
+                title = source.title + " • نسخة"
+            )
+        )
+    }
+
+    fun toggleMediaFavorite(assetId: String) {
+        _mediaLibrary.value = _mediaLibrary.value.map {
+            if (it.id == assetId) it.copy(isFavorite = !it.isFavorite) else it
+        }
+    }
+
+    fun publishVideoAssetAsClip(asset: MediaAsset, caption: String) {
+        if (asset.kind != MediaKind.VIDEO) return
+        val clip = Clip(
+            id = "clip_${UUID.randomUUID().toString().take(8)}",
+            author = _currentUser.value,
+            videoUrl = asset.uri,
+            thumbnailUrl = "",
+            caption = caption.trim().ifBlank { asset.title },
+            audioTrackTitle = if (asset.isMuted) "بدون صوت" else "الصوت الأصلي",
+            likesCount = 0,
+            commentsCount = 0
+        )
+        _clips.value = listOf(clip) + _clips.value
     }
 
     fun addRecentSearch(query: String) {
