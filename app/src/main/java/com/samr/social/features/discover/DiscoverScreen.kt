@@ -71,6 +71,8 @@ fun DiscoverScreen(
 ) {
     val view = LocalView.current
     var searchQuery by remember { mutableStateOf("") }
+    var searchFilter by remember { mutableStateOf(0) }
+    val recentSearches by repository.recentSearches.collectAsState()
     val communities by repository.communities.collectAsState()
     val posts by repository.posts.collectAsState()
     val isArabic = LocalLayoutDirection.current == LayoutDirection.Rtl
@@ -159,6 +161,83 @@ fun DiscoverScreen(
                     singleLine = true
                 )
             }
+
+            LazyRow(
+                modifier = Modifier.padding(top = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(7.dp)
+            ) {
+                items(
+                    listOf(
+                        stringResource(R.string.search_all),
+                        stringResource(R.string.search_people),
+                        stringResource(R.string.search_posts),
+                        stringResource(R.string.search_communities)
+                    )
+                ) { label ->
+                    val index = listOf(
+                        stringResource(R.string.search_all),
+                        stringResource(R.string.search_people),
+                        stringResource(R.string.search_posts),
+                        stringResource(R.string.search_communities)
+                    ).indexOf(label)
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(
+                                if (searchFilter == index) AuraChampagne.copy(alpha = 0.18f)
+                                else MaterialTheme.colorScheme.surfaceVariant
+                            )
+                            .clickable { searchFilter = index }
+                            .padding(horizontal = 12.dp, vertical = 7.dp)
+                    ) {
+                        Text(
+                            label,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = if (searchFilter == index) AuraChampagne else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            if (searchQuery.isBlank() && recentSearches.isNotEmpty()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        stringResource(R.string.recent_searches),
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        stringResource(R.string.clear_all),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = AuraChampagne,
+                        modifier = Modifier.clickable { repository.clearRecentSearches() }
+                    )
+                }
+                LazyRow(
+                    modifier = Modifier.padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(7.dp)
+                ) {
+                    items(recentSearches) { query ->
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .clickable {
+                                    searchQuery = query
+                                    repository.addRecentSearch(query)
+                                }
+                                .padding(horizontal = 11.dp, vertical = 7.dp)
+                        ) {
+                            Text(query, style = MaterialTheme.typography.labelMedium)
+                        }
+                    }
+                }
+            }
         }
 
         // Trending Topics
@@ -199,6 +278,7 @@ fun DiscoverScreen(
                                 .clickable {
                                     view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
                                     searchQuery = tag
+                                    repository.addRecentSearch(tag)
                                 }
                                 .padding(horizontal = 14.dp, vertical = 8.dp)
                         ) {
@@ -214,7 +294,7 @@ fun DiscoverScreen(
             }
         }
 
-        if (searchQuery.isNotBlank()) {
+        if (searchQuery.isNotBlank() && (searchFilter == 0 || searchFilter == 1)) {
             item {
                 Text(
                     text = stringResource(R.string.people_results),
@@ -283,7 +363,7 @@ fun DiscoverScreen(
             }
         }
 
-        if (searchQuery.isNotBlank() && contentResults.isNotEmpty()) {
+        if (searchQuery.isNotBlank() && contentResults.isNotEmpty() && (searchFilter == 0 || searchFilter == 2)) {
             item {
                 Text(
                     text = stringResource(R.string.content_result),
@@ -369,7 +449,7 @@ fun DiscoverScreen(
         }
 
         // Communities Header
-        item {
+        if (searchFilter == 0 || searchFilter == 3) item {
             Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier
@@ -387,7 +467,7 @@ fun DiscoverScreen(
         }
 
         // Communities Cards
-        items(visibleCommunities, key = { it.id }) { community ->
+        if (searchFilter == 0 || searchFilter == 3) items(visibleCommunities, key = { it.id }) { community ->
             CommunityCard(
                 community = community,
                 isArabic = isArabic,
