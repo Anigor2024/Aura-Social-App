@@ -85,6 +85,10 @@ fun SamrPostCard(
     onPinClick: () -> Unit = {},
     onResonanceClick: () -> Unit = {},
     onPollVote: (String) -> Unit = {},
+    onMuteCreatorClick: () -> Unit = {},
+    onReportClick: () -> Unit = {},
+    onHideClick: () -> Unit = {},
+    compactMode: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
@@ -110,11 +114,11 @@ fun SamrPostCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 6.dp)
-            .clip(RoundedCornerShape(20.dp))
+            .padding(horizontal = 12.dp, vertical = if (compactMode) 3.dp else 6.dp)
+            .clip(RoundedCornerShape(if (compactMode) 16.dp else 20.dp))
             .background(MaterialTheme.colorScheme.surface)
-            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f), RoundedCornerShape(20.dp))
-            .padding(16.dp)
+            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f), RoundedCornerShape(if (compactMode) 16.dp else 20.dp))
+            .padding(if (compactMode) 12.dp else 16.dp)
             .testTag("post_card_${post.id}")
     ) {
         // Author Header
@@ -290,17 +294,32 @@ fun SamrPostCard(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.menu_mute_creator)) },
-                                onClick = { showMenu = false }
+                                text = { Text(stringResource(R.string.hide_post)) },
+                                onClick = {
+                                    showMenu = false
+                                    onHideClick()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.mute_creator)) },
+                                onClick = {
+                                    showMenu = false
+                                    onMuteCreatorClick()
+                                }
                             )
                             DropdownMenuItem(
                                 text = {
                                     Text(
-                                        stringResource(R.string.menu_report),
+                                        if (post.isReported) stringResource(R.string.reported)
+                                        else stringResource(R.string.report_post),
                                         color = MaterialTheme.colorScheme.error
                                     )
                                 },
-                                onClick = { showMenu = false }
+                                enabled = !post.isReported,
+                                onClick = {
+                                    showMenu = false
+                                    onReportClick()
+                                }
                             )
                         }
                     }
@@ -309,6 +328,19 @@ fun SamrPostCard(
         }
 
         Spacer(modifier = Modifier.height(12.dp))
+
+        if (!post.locationTag.isNullOrBlank()) {
+            Row(
+                modifier = Modifier.padding(bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.post_location, post.locationTag),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = SamrChampagne
+                )
+            }
+        }
 
         // Post Text Body
         Text(
@@ -326,7 +358,7 @@ fun SamrPostCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(260.dp)
+                    .height(if (compactMode) 190.dp else 260.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
@@ -335,7 +367,7 @@ fun SamrPostCard(
                         .data(firstMedia)
                         .crossfade(true)
                         .build(),
-                    contentDescription = stringResource(R.string.post_media_desc),
+                    contentDescription = post.altText ?: stringResource(R.string.post_media_desc),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -357,6 +389,15 @@ fun SamrPostCard(
                     }
                 }
             }
+        }
+
+        if (!post.altText.isNullOrBlank() && post.mediaUrls.isNotEmpty() && !compactMode) {
+            Text(
+                text = stringResource(R.string.image_description, post.altText),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 6.dp)
+            )
         }
 
         if (post.poll != null) {
@@ -682,6 +723,10 @@ fun AuraPostCard(
     onPinClick: () -> Unit = {},
     onResonanceClick: () -> Unit = {},
     onPollVote: (String) -> Unit = {},
+    onMuteCreatorClick: () -> Unit = {},
+    onReportClick: () -> Unit = {},
+    onHideClick: () -> Unit = {},
+    compactMode: Boolean = false,
     modifier: Modifier = Modifier
 ) = SamrPostCard(
     post = post,
@@ -699,5 +744,9 @@ fun AuraPostCard(
     onPinClick = onPinClick,
     onResonanceClick = onResonanceClick,
     onPollVote = onPollVote,
+    onMuteCreatorClick = onMuteCreatorClick,
+    onReportClick = onReportClick,
+    onHideClick = onHideClick,
+    compactMode = compactMode,
     modifier = modifier
 )
