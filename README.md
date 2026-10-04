@@ -31,6 +31,8 @@
 - Preview version: 0.2.0
 
 ## CI
+
+حالة البناء: GitHub Actions preview pipeline enabled.
 GitHub Actions يبني الاختبارات وAPK التجريبي تلقائياً على كل تحديث للفرع main.
 
 ---
