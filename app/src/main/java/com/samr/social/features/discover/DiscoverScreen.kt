@@ -22,9 +22,13 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -95,6 +99,19 @@ fun DiscoverScreen(
                     it.description.contains(q, ignoreCase = true) ||
                     it.category.contains(q, ignoreCase = true)
             }
+        }
+    }
+
+    val contentResults = remember(searchQuery, posts) {
+        if (searchQuery.isBlank()) {
+            emptyList()
+        } else {
+            val q = searchQuery.trim().removePrefix("#")
+            posts.filter {
+                it.text.contains(q, ignoreCase = true) ||
+                    it.author.displayName.contains(q, ignoreCase = true) ||
+                    it.author.username.contains(q, ignoreCase = true)
+            }.take(6)
         }
     }
 
@@ -205,7 +222,7 @@ fun DiscoverScreen(
                 )
             }
 
-            if (creatorResults.isEmpty() && visibleCommunities.isEmpty()) {
+            if (creatorResults.isEmpty() && visibleCommunities.isEmpty() && contentResults.isEmpty()) {
                 item {
                     Text(
                         text = stringResource(R.string.no_results),
@@ -258,6 +275,91 @@ fun DiscoverScreen(
                                 text = if (user.isFollowing) stringResource(R.string.following) else stringResource(R.string.follow),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = if (user.isFollowing) MaterialTheme.colorScheme.onSurface else Color.Black
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        if (searchQuery.isNotBlank() && contentResults.isNotEmpty()) {
+            item {
+                Text(
+                    text = stringResource(R.string.content_result),
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                )
+            }
+
+            items(contentResults, key = { "search_" + it.id }) { post ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 6.dp)
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .border(
+                            1.dp,
+                            MaterialTheme.colorScheme.outline.copy(alpha = 0.28f),
+                            RoundedCornerShape(18.dp)
+                        )
+                        .padding(14.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(onClick = onNavigateToProfile),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        AuraAvatar(
+                            imageUrl = post.author.avatarUrl,
+                            name = post.author.displayName,
+                            size = 38.dp,
+                            isVerified = post.author.isVerified
+                        )
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(horizontal = 10.dp)
+                        ) {
+                            Text(
+                                post.author.displayName,
+                                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
+                            )
+                            Text(
+                                "@" + post.author.username,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(9.dp))
+                    Text(
+                        post.text,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 4
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = { repository.toggleLike(post.id) }) {
+                            Icon(
+                                imageVector = if (post.isLiked) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
+                                contentDescription = stringResource(R.string.like),
+                                tint = if (post.isLiked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        IconButton(onClick = { repository.toggleBookmark(post.id) }) {
+                            Icon(
+                                imageVector = if (post.isBookmarked) Icons.Default.Bookmark else Icons.Outlined.BookmarkBorder,
+                                contentDescription = stringResource(R.string.bookmark),
+                                tint = if (post.isBookmarked) AuraChampagne else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
