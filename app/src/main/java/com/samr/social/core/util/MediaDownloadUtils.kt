@@ -27,7 +27,7 @@ object MediaDownloadUtils {
         }
         val safeTitle = title
             .ifBlank { "SAMR_media" }
-            .replace(Regex("[^\p{L}\p{N}_\- ]"), "")
+            .replace(Regex("[^\\p{L}\\p{N}_\\- ]"), "")
             .trim()
             .take(48)
             .ifBlank { "SAMR_media" }
