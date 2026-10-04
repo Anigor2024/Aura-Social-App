@@ -2,6 +2,8 @@ package com.samr.social.features.chat
 
 import android.view.HapticFeedbackConstants
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,13 +23,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MoreVert
@@ -65,6 +70,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -72,13 +78,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.samr.social.R
 import com.samr.social.core.designsystem.components.AuraAvatar
+import com.samr.social.core.designsystem.components.SamrMediaAssetPreview
 import com.samr.social.core.model.Conversation
 import com.samr.social.core.model.DirectMessage
+import com.samr.social.core.model.MediaAsset
+import com.samr.social.core.model.MediaKind
+import com.samr.social.core.model.MediaOrigin
 import com.samr.social.core.model.MessageStatus
 import com.samr.social.core.repository.SamrRepository
+import com.samr.social.core.util.MediaFileUtils
 import com.samr.social.ui.theme.AuraChampagne
 import com.samr.social.ui.theme.AuraViolet
 import com.samr.social.ui.theme.ObsidianVoid
+import java.util.UUID
 
 @Composable
 fun ChatScreen(
@@ -335,7 +347,9 @@ fun ConversationThreadScreen(
     modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
+    val context = LocalContext.current
     val allMessages by repository.threadMessages.collectAsState()
+    val mediaLibrary by repository.mediaLibrary.collectAsState()
     val messages = allMessages.filter { it.conversationId == conversation.id }
     var inputMessage by remember { mutableStateOf("") }
     var isRecordingVoice by remember { mutableStateOf(false) }
@@ -345,6 +359,38 @@ fun ConversationThreadScreen(
     var replyingTo by remember { mutableStateOf<DirectMessage?>(null) }
     var searchInThread by remember { mutableStateOf(false) }
     var messageSearch by remember { mutableStateOf("") }
+    var pendingMedia by remember { mutableStateOf<MediaAsset?>(null) }
+    var showMediaTray by remember { mutableStateOf(false) }
+
+    val importMedia = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let { source ->
+            val mime = context.contentResolver.getType(source).orEmpty()
+            val kind = when {
+                mime.startsWith("image/") -> MediaKind.IMAGE
+                mime.startsWith("video/") -> MediaKind.VIDEO
+                mime.startsWith("audio/") -> MediaKind.AUDIO
+                else -> null
+            }
+            if (kind != null) {
+                MediaFileUtils.copyUriToCache(context, source, kind)?.let { copied ->
+                    val asset = MediaAsset(
+                        id = "media_${UUID.randomUUID().toString().take(8)}",
+                        uri = copied.toString(),
+                        kind = kind,
+                        origin = MediaOrigin.IMPORTED,
+                        title = when (kind) {
+                            MediaKind.IMAGE -> "Chat image"
+                            MediaKind.VIDEO -> "Chat video"
+                            MediaKind.AUDIO -> "Chat audio"
+                        },
+                        mimeType = mime
+                    )
+                    repository.addMediaAsset(asset)
+                    pendingMedia = asset
+                }
+            }
+        }
+    }
 
     Column(
         modifier = modifier
@@ -492,6 +538,107 @@ fun ConversationThreadScreen(
             }
         }
 
+        AnimatedVisibility(visible = showMediaTray) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(vertical = 8.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        stringResource(R.string.recent_media),
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                        modifier = Modifier.weight(1f)
+                    )
+                    TextButton(onClick = { importMedia.launch("*/*") }) {
+                        Text(stringResource(R.string.attach_media), color = AuraChampagne)
+                    }
+                }
+                if (mediaLibrary.isNotEmpty()) {
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(mediaLibrary.take(10), key = { "chat_media_" + it.id }) { asset ->
+                            Column(
+                                modifier = Modifier
+                                    .width(128.dp)
+                                    .clip(RoundedCornerShape(14.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                    .clickable {
+                                        pendingMedia = asset
+                                        showMediaTray = false
+                                    }
+                                    .padding(7.dp)
+                            ) {
+                                SamrMediaAssetPreview(
+                                    asset = asset,
+                                    height = if (asset.kind == MediaKind.AUDIO) 64.dp else 92.dp,
+                                    autoplay = false
+                                )
+                                Text(
+                                    asset.title,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    maxLines = 1,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    Text(
+                        stringResource(R.string.media_empty),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
+                    )
+                }
+            }
+        }
+
+        pendingMedia?.let { asset ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(AuraChampagne.copy(alpha = 0.06f))
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(modifier = Modifier.width(120.dp)) {
+                    SamrMediaAssetPreview(
+                        asset = asset,
+                        height = if (asset.kind == MediaKind.AUDIO) 68.dp else 88.dp,
+                        autoplay = false
+                    )
+                }
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 10.dp)
+                ) {
+                    Text(
+                        asset.title,
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                        maxLines = 1
+                    )
+                    Text(
+                        stringResource(R.string.media_publish_ready),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = AuraChampagne
+                    )
+                }
+                IconButton(onClick = { pendingMedia = null }) {
+                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.remove_attachment))
+                }
+            }
+        }
+
         replyingTo?.let { reply ->
             Row(
                 modifier = Modifier
@@ -521,9 +668,23 @@ fun ConversationThreadScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.surface)
-                .padding(horizontal = 12.dp, vertical = 8.dp),
+                .padding(horizontal = 8.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            IconButton(
+                onClick = { showMediaTray = !showMediaTray },
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(if (showMediaTray) AuraChampagne.copy(alpha = 0.14f) else Color.Transparent)
+            ) {
+                Icon(
+                    Icons.Default.AttachFile,
+                    contentDescription = stringResource(R.string.attach_media),
+                    tint = if (showMediaTray) AuraChampagne else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
             OutlinedTextField(
                 value = inputMessage,
                 onValueChange = { inputMessage = it },
@@ -547,16 +708,27 @@ fun ConversationThreadScreen(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            if (inputMessage.isNotBlank()) {
+            if (inputMessage.isNotBlank() || pendingMedia != null) {
                 IconButton(
                     onClick = {
                         view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-                        repository.sendMessage(
-                            conversationId = conversation.id,
-                            text = inputMessage,
-                            replyToText = replyingTo?.text
-                        )
+                        val asset = pendingMedia
+                        if (asset != null) {
+                            repository.sendMediaMessage(
+                                conversationId = conversation.id,
+                                asset = asset,
+                                caption = inputMessage,
+                                replyToText = replyingTo?.text
+                            )
+                        } else {
+                            repository.sendMessage(
+                                conversationId = conversation.id,
+                                text = inputMessage,
+                                replyToText = replyingTo?.text
+                            )
+                        }
                         inputMessage = ""
+                        pendingMedia = null
                         replyingTo = null
                     },
                     modifier = Modifier
@@ -689,7 +861,7 @@ fun MessageBubble(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = if (msg.isMine) Alignment.End else Alignment.Start
     ) {
-        Box(
+        Column(
             modifier = Modifier
                 .clip(
                     RoundedCornerShape(
@@ -716,7 +888,23 @@ fun MessageBubble(
                 Spacer(modifier = Modifier.height(6.dp))
             }
 
-            if (msg.voiceDurationSeconds != null) {
+            if (msg.mediaAsset != null) {
+                SamrMediaAssetPreview(
+                    asset = msg.mediaAsset,
+                    height = if (msg.mediaAsset.kind == MediaKind.AUDIO) 78.dp else 190.dp,
+                    autoplay = false,
+                    modifier = Modifier.width(260.dp)
+                )
+                if (msg.text.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(7.dp))
+                    Text(
+                        text = msg.text,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = textColor,
+                        lineHeight = 20.sp
+                    )
+                }
+            } else if (msg.voiceDurationSeconds != null) {
                 // Interactive Voice Note Bubble with Waveform
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
