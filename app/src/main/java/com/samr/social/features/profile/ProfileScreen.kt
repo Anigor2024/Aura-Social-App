@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.GridOn
@@ -83,6 +84,7 @@ import com.samr.social.ui.theme.AuraChampagne
 fun ProfileScreen(
     repository: SamrRepository,
     onNavigateToSettings: () -> Unit,
+    onOpenStudio: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
@@ -275,6 +277,53 @@ fun ProfileScreen(
                     ProfileStatItem(count = "${currentUser.followingCount}", label = stringResource(R.string.following_stat))
                 }
 
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(AuraChampagne.copy(alpha = 0.09f))
+                        .border(1.dp, AuraChampagne.copy(alpha = 0.28f), RoundedCornerShape(18.dp))
+                        .clickable(onClick = onOpenStudio)
+                        .padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(AuraChampagne.copy(alpha = 0.17f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.AutoAwesome,
+                            contentDescription = null,
+                            tint = AuraChampagne
+                        )
+                    }
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 10.dp)
+                    ) {
+                        Text(
+                            stringResource(R.string.creator_studio),
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                        )
+                        Text(
+                            stringResource(R.string.creator_studio_subtitle),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Text(
+                        stringResource(R.string.view_studio),
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = AuraChampagne
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(20.dp))
 
                 // Story Highlights
@@ -441,7 +490,8 @@ fun ProfileScreen(
                         isOwner = post.author.id == currentUser.id,
                         onEditClick = { editingPostId = post.id },
                         onDeleteClick = { deletingPostId = post.id },
-                        onPinClick = { repository.togglePinPost(post.id) }
+                        onPinClick = { repository.togglePinPost(post.id) },
+                        onResonanceClick = { repository.toggleResonance(post.id) }
                     )
                 }
             }
