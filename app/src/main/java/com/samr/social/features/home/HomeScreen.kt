@@ -29,16 +29,19 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Forum
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -51,6 +54,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -64,8 +69,11 @@ import com.samr.social.core.designsystem.components.AuraPrimaryButton
 import com.samr.social.core.designsystem.components.AuraSecondaryButton
 import com.samr.social.core.model.CatchUpSummary
 import com.samr.social.core.model.MoodType
+import com.samr.social.core.model.Post
 import com.samr.social.core.model.Story
 import com.samr.social.core.repository.SamrRepository
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.samr.social.ui.theme.AuraChampagne
 import com.samr.social.ui.theme.AuraViolet
 
@@ -84,6 +92,8 @@ fun HomeScreen(
     val activeLayer by repository.activeLayer.collectAsState()
     val activeMood by repository.activeMood.collectAsState()
     val isQuietMode by repository.isQuietMode.collectAsState()
+    val currentUser by repository.currentUser.collectAsState()
+    val comments by repository.comments.collectAsState()
 
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val tabTitles = listOf(
@@ -95,9 +105,14 @@ fun HomeScreen(
 
     var activeRoomId by remember { mutableStateOf<String?>(null) }
     var showCatchUpSheet by remember { mutableStateOf(false) }
+    var selectedPostId by remember { mutableStateOf<String?>(null) }
+    var selectedStory by remember { mutableStateOf<Story?>(null) }
+    var showAddStoryDialog by remember { mutableStateOf(false) }
+    var editingPost by remember { mutableStateOf<Post?>(null) }
+    var deletingPost by remember { mutableStateOf<Post?>(null) }
 
     val filteredPosts = remember(posts, activeLayer, activeMood, selectedTabIndex) {
-        posts.filter { post ->
+        posts.sortedByDescending { it.isPinned }.filter { post ->
             val matchesLayer = post.socialLayer == activeLayer || selectedTabIndex == 0
             val matchesMood = activeMood == MoodType.ALL || post.mood == activeMood
             val matchesTab = when (selectedTabIndex) {
@@ -119,8 +134,8 @@ fun HomeScreen(
         item {
             StoriesTray(
                 stories = stories,
-                onStoryClick = { },
-                onAddStoryClick = { }
+                onStoryClick = { selectedStory = it },
+                onAddStoryClick = { showAddStoryDialog = true }
             )
         }
 
@@ -198,14 +213,18 @@ fun HomeScreen(
                     post = post,
                     isQuietMode = isQuietMode,
                     onLikeClick = { repository.toggleLike(post.id) },
-                    onCommentClick = { },
+                    onCommentClick = { selectedPostId = post.id },
                     onBookmarkClick = { repository.toggleBookmark(post.id) },
                     onRepostClick = { repository.toggleRepost(post.id) },
                     onShareClick = { },
                     onAuthorClick = onNavigateToProfile,
                     onJoinRoomClick = { roomId ->
                         activeRoomId = roomId
-                    }
+                    },
+                    isOwner = post.author.id == currentUser.id,
+                    onEditClick = { editingPost = post },
+                    onDeleteClick = { deletingPost = post },
+                    onPinClick = { repository.togglePinPost(post.id) }
                 )
             }
         }
@@ -237,6 +256,325 @@ fun HomeScreen(
                 onClose = { showCatchUpSheet = false }
             )
         }
+    }
+
+    selectedPostId?.let { postId ->
+        val post = posts.firstOrNull { it.id == postId }
+        if (post != null) {
+            ModalBottomSheet(
+                onDismissRequest = { selectedPostId = null },
+                containerColor = MaterialTheme.colorScheme.surface,
+                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            ) {
+                CommentsSheetContent(
+                    post = post,
+                    comments = comments.filter { it.postId == postId },
+                    currentUserId = currentUser.id,
+                    onAddComment = { repository.addComment(postId, it) },
+                    onDeleteComment = repository::deleteComment,
+                    onClose = { selectedPostId = null }
+                )
+            }
+        }
+    }
+
+    selectedStory?.let { story ->
+        ModalBottomSheet(
+            onDismissRequest = { selectedStory = null },
+            containerColor = MaterialTheme.colorScheme.surface,
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            StoryViewerContent(
+                story = story,
+                isOwner = story.author.id == currentUser.id,
+                onDelete = {
+                    repository.deleteStory(story.id)
+                    selectedStory = null
+                },
+                onClose = { selectedStory = null }
+            )
+        }
+    }
+
+    if (showAddStoryDialog) {
+        var mediaUrl by remember { mutableStateOf("") }
+        var caption by remember { mutableStateOf("") }
+        AlertDialog(
+            onDismissRequest = { showAddStoryDialog = false },
+            title = { Text(stringResource(R.string.add_story)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedTextField(
+                        value = mediaUrl,
+                        onValueChange = { mediaUrl = it },
+                        label = { Text(stringResource(R.string.story_media_url)) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = caption,
+                        onValueChange = { caption = it },
+                        label = { Text(stringResource(R.string.story_caption)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 3
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        repository.addStory(mediaUrl, caption)
+                        showAddStoryDialog = false
+                    }
+                ) {
+                    Text(stringResource(R.string.create_action))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAddStoryDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    editingPost?.let { post ->
+        var editedText by remember(post.id) { mutableStateOf(post.text) }
+        AlertDialog(
+            onDismissRequest = { editingPost = null },
+            title = { Text(stringResource(R.string.edit_post)) },
+            text = {
+                OutlinedTextField(
+                    value = editedText,
+                    onValueChange = { editedText = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 4
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        repository.editPost(post.id, editedText)
+                        editingPost = null
+                    },
+                    enabled = editedText.isNotBlank()
+                ) {
+                    Text(stringResource(R.string.save_changes))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { editingPost = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    deletingPost?.let { post ->
+        AlertDialog(
+            onDismissRequest = { deletingPost = null },
+            title = { Text(stringResource(R.string.delete_post)) },
+            text = { Text(post.text.take(120)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        repository.deletePost(post.id)
+                        deletingPost = null
+                    }
+                ) {
+                    Text(
+                        stringResource(R.string.delete_action),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { deletingPost = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+}
+
+
+@Composable
+private fun CommentsSheetContent(
+    post: Post,
+    comments: List<com.samr.social.core.model.PostComment>,
+    currentUserId: String,
+    onAddComment: (String) -> Unit,
+    onDeleteComment: (String) -> Unit,
+    onClose: () -> Unit
+) {
+    var commentText by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp, vertical = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                stringResource(R.string.comments_title),
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+            )
+            IconButton(onClick = onClose) {
+                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.close_dialog))
+            }
+        }
+
+        if (comments.isEmpty()) {
+            Text(
+                text = stringResource(R.string.no_comments_yet),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(vertical = 24.dp)
+            )
+        } else {
+            comments.forEach { comment ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 9.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    AuraAvatar(
+                        imageUrl = comment.author.avatarUrl,
+                        name = comment.author.displayName,
+                        size = 38.dp,
+                        isVerified = comment.author.isVerified
+                    )
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 10.dp)
+                    ) {
+                        Text(
+                            comment.author.displayName,
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
+                        )
+                        Text(comment.text, style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            comment.timestampLabel,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    if (comment.author.id == currentUserId) {
+                        TextButton(onClick = { onDeleteComment(comment.id) }) {
+                            Text(
+                                stringResource(R.string.delete_action),
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        if (post.allowComments) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = commentText,
+                    onValueChange = { commentText = it },
+                    placeholder = { Text(stringResource(R.string.add_comment_hint)) },
+                    modifier = Modifier.weight(1f),
+                    maxLines = 3
+                )
+                TextButton(
+                    onClick = {
+                        onAddComment(commentText)
+                        commentText = ""
+                    },
+                    enabled = commentText.isNotBlank()
+                ) {
+                    Text(stringResource(R.string.send_action), color = AuraChampagne)
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun StoryViewerContent(
+    story: Story,
+    isOwner: Boolean,
+    onDelete: () -> Unit,
+    onClose: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AuraAvatar(
+                imageUrl = story.author.avatarUrl,
+                name = story.author.displayName,
+                size = 42.dp,
+                isVerified = story.author.isVerified
+            )
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 10.dp)
+            ) {
+                Text(
+                    story.author.displayName,
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold)
+                )
+                Text(
+                    stringResource(R.string.story_viewer),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            if (isOwner) {
+                TextButton(onClick = onDelete) {
+                    Text(
+                        stringResource(R.string.delete_story),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+            IconButton(onClick = onClose) {
+                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.close_dialog))
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(story.mediaUrl)
+                .crossfade(true)
+                .build(),
+            contentDescription = stringResource(R.string.story_viewer),
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(430.dp)
+                .clip(RoundedCornerShape(24.dp))
+        )
+        if (story.caption.isNotBlank()) {
+            Text(
+                text = story.caption,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(vertical = 14.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
