@@ -24,6 +24,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Drafts
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -58,6 +60,7 @@ import com.samr.social.core.designsystem.components.AuraAvatar
 import com.samr.social.core.designsystem.components.AuraPrimaryButton
 import com.samr.social.core.designsystem.components.getLayerColor
 import com.samr.social.core.designsystem.components.getLayerLabel
+import com.samr.social.core.model.PostDraft
 import com.samr.social.core.model.PostLifetime
 import com.samr.social.core.model.SamrCircle
 import com.samr.social.core.repository.SamrRepository
@@ -67,8 +70,10 @@ import com.samr.social.ui.theme.AuraChampagne
 @Composable
 fun CreatePostScreen(
     repository: SamrRepository,
+    initialDraft: PostDraft? = null,
     onPostCreated: () -> Unit,
     onCancel: () -> Unit,
+    onOpenContentHub: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
@@ -77,11 +82,16 @@ fun CreatePostScreen(
     val circles by repository.circles.collectAsState()
     val isArabic = LocalLayoutDirection.current == LayoutDirection.Rtl
 
-    var postText by remember { mutableStateOf("") }
+    var postText by remember(initialDraft) { mutableStateOf(initialDraft?.text ?: "") }
     var selectedLifetime by remember { mutableStateOf(PostLifetime.PERMANENT) }
     var selectedCircle by remember { mutableStateOf<SamrCircle?>(null) }
-    var attachedImageUrl by remember { mutableStateOf<String?>(null) }
-    var mediaUrlInput by remember { mutableStateOf("") }
+    var attachedImageUrl by remember(initialDraft) { mutableStateOf(initialDraft?.mediaUrl) }
+    var mediaUrlInput by remember(initialDraft) { mutableStateOf(initialDraft?.mediaUrl ?: "") }
+    var locationTag by remember(initialDraft) { mutableStateOf(initialDraft?.locationTag ?: "") }
+    var altText by remember(initialDraft) { mutableStateOf(initialDraft?.altText ?: "") }
+    var scheduleLabel by remember { mutableStateOf("") }
+    var draftSaved by remember { mutableStateOf(false) }
+    var scheduledSaved by remember { mutableStateOf(false) }
     var allowComments by remember { mutableStateOf(true) }
     var hideLikeCount by remember { mutableStateOf(false) }
     var pollEnabled by remember { mutableStateOf(false) }
@@ -150,7 +160,9 @@ fun CreatePostScreen(
                                 listOf(pollOption1, pollOption2, pollOption3, pollOption4)
                             } else {
                                 emptyList()
-                            }
+                            },
+                            locationTag = locationTag,
+                            altText = altText
                         )
                         onPostCreated()
                     }
@@ -214,7 +226,7 @@ fun CreatePostScreen(
         // Text Input
         OutlinedTextField(
             value = postText,
-            onValueChange = { postText = it },
+            onValueChange = { if (it.length <= 1000) postText = it },
             placeholder = {
                 Text(
                     text = stringResource(R.string.post_placeholder),
@@ -234,7 +246,27 @@ fun CreatePostScreen(
             shape = RoundedCornerShape(16.dp)
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 6.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TextButton(onClick = onOpenContentHub) {
+                Icon(Icons.Default.Drafts, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(5.dp))
+                Text(stringResource(R.string.open_content_hub))
+            }
+            Text(
+                text = stringResource(R.string.character_count, postText.length),
+                style = MaterialTheme.typography.labelSmall,
+                color = if (postText.length > 900) MaterialTheme.colorScheme.error
+                else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         Text(
             text = stringResource(R.string.advanced_publish),
@@ -255,6 +287,30 @@ fun CreatePostScreen(
             shape = RoundedCornerShape(14.dp),
             singleLine = true
         )
+        Spacer(modifier = Modifier.height(10.dp))
+
+        OutlinedTextField(
+            value = locationTag,
+            onValueChange = { if (it.length <= 80) locationTag = it },
+            label = { Text(stringResource(R.string.location_tag)) },
+            placeholder = { Text(stringResource(R.string.location_hint)) },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            singleLine = true
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        OutlinedTextField(
+            value = altText,
+            onValueChange = { if (it.length <= 240) altText = it },
+            label = { Text(stringResource(R.string.alt_text)) },
+            placeholder = { Text(stringResource(R.string.alt_text_hint)) },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            maxLines = 3
+        )
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
@@ -431,6 +487,65 @@ fun CreatePostScreen(
                 )
             }
         }
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            TextButton(
+                onClick = {
+                    repository.saveDraft(
+                        text = postText,
+                        mediaUrl = attachedImageUrl,
+                        locationTag = locationTag,
+                        altText = altText
+                    )
+                    draftSaved = true
+                },
+                enabled = postText.isNotBlank() || attachedImageUrl != null,
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(Icons.Default.Drafts, contentDescription = null, modifier = Modifier.size(17.dp))
+                Spacer(modifier = Modifier.width(5.dp))
+                Text(if (draftSaved) stringResource(R.string.draft_saved) else stringResource(R.string.save_draft))
+            }
+
+            TextButton(
+                onClick = {
+                    if (scheduleLabel.isNotBlank()) {
+                        repository.schedulePost(
+                            text = postText,
+                            mediaUrl = attachedImageUrl,
+                            scheduledLabel = scheduleLabel,
+                            locationTag = locationTag,
+                            altText = altText
+                        )
+                        scheduledSaved = true
+                    }
+                },
+                enabled = scheduleLabel.isNotBlank() && (postText.isNotBlank() || attachedImageUrl != null),
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(Icons.Default.Schedule, contentDescription = null, modifier = Modifier.size(17.dp))
+                Spacer(modifier = Modifier.width(5.dp))
+                Text(if (scheduledSaved) stringResource(R.string.scheduled_saved) else stringResource(R.string.schedule_post))
+            }
+        }
+
+        OutlinedTextField(
+            value = scheduleLabel,
+            onValueChange = {
+                scheduleLabel = it
+                scheduledSaved = false
+            },
+            label = { Text(stringResource(R.string.schedule_label)) },
+            placeholder = { Text(stringResource(R.string.schedule_hint)) },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            singleLine = true
+        )
 
         Spacer(modifier = Modifier.height(20.dp))
 
