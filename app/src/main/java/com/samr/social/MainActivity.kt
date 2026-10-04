@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.samr.social.core.designsystem.components.SamrBottomBar
 import com.samr.social.core.designsystem.components.SamrNavigationTab
 import com.samr.social.core.designsystem.components.SamrTopBar
+import com.samr.social.core.model.PostDraft
 import com.samr.social.core.repository.SamrRepository
 import com.samr.social.core.util.LocaleManager
 import com.samr.social.core.util.SessionManager
@@ -34,6 +35,7 @@ import com.samr.social.features.activity.ActivityCenterScreen
 import com.samr.social.features.auth.AuthScreen
 import com.samr.social.features.chat.ChatScreen
 import com.samr.social.features.clips.ClipsScreen
+import com.samr.social.features.content.ContentHubScreen
 import com.samr.social.features.create.CreatePostScreen
 import com.samr.social.features.discover.DiscoverScreen
 import com.samr.social.features.home.HomeScreen
@@ -42,6 +44,7 @@ import com.samr.social.features.language.LanguageSelectScreen
 import com.samr.social.features.majlis.MajlisScreen
 import com.samr.social.features.profile.ProfileScreen
 import com.samr.social.features.safety.SafetyCenterScreen
+import com.samr.social.features.settings.ExperienceCenterScreen
 import com.samr.social.features.settings.SettingsScreen
 import com.samr.social.features.studio.CreatorStudioScreen
 import com.samr.social.ui.theme.SamrTheme
@@ -91,6 +94,9 @@ fun SamrApp(
     var isViewingStudio by remember { mutableStateOf(false) }
     var isViewingMajlis by remember { mutableStateOf(false) }
     var isViewingSafetyCenter by remember { mutableStateOf(false) }
+    var isViewingContentHub by remember { mutableStateOf(false) }
+    var isViewingExperienceCenter by remember { mutableStateOf(false) }
+    var selectedDraft by remember { mutableStateOf<PostDraft?>(null) }
     var showCatchUpDialog by remember { mutableStateOf(false) }
 
     val activeLayer by repository.activeLayer.collectAsState()
@@ -150,6 +156,27 @@ fun SamrApp(
             )
         }
 
+        isViewingContentHub -> {
+            BackHandler { isViewingContentHub = false }
+            ContentHubScreen(
+                repository = repository,
+                onBack = { isViewingContentHub = false },
+                onUseDraft = { draft ->
+                    selectedDraft = draft
+                    isViewingContentHub = false
+                    isCreatingPost = true
+                }
+            )
+        }
+
+        isViewingExperienceCenter -> {
+            BackHandler { isViewingExperienceCenter = false }
+            ExperienceCenterScreen(
+                repository = repository,
+                onBack = { isViewingExperienceCenter = false }
+            )
+        }
+
         isViewingSettings -> {
             BackHandler { isViewingSettings = false }
             SettingsScreen(
@@ -171,6 +198,14 @@ fun SamrApp(
                 onOpenSafetyCenter = {
                     isViewingSettings = false
                     isViewingSafetyCenter = true
+                },
+                onOpenExperienceCenter = {
+                    isViewingSettings = false
+                    isViewingExperienceCenter = true
+                },
+                onOpenContentHub = {
+                    isViewingSettings = false
+                    isViewingContentHub = true
                 }
             )
         }
@@ -237,8 +272,19 @@ fun SamrApp(
                     if (isCreatingPost) {
                         CreatePostScreen(
                             repository = repository,
-                            onPostCreated = { isCreatingPost = false },
-                            onCancel = { isCreatingPost = false }
+                            initialDraft = selectedDraft,
+                            onPostCreated = {
+                                selectedDraft = null
+                                isCreatingPost = false
+                            },
+                            onCancel = {
+                                selectedDraft = null
+                                isCreatingPost = false
+                            },
+                            onOpenContentHub = {
+                                isCreatingPost = false
+                                isViewingContentHub = true
+                            }
                         )
                     } else {
                         Crossfade(
@@ -287,7 +333,8 @@ fun SamrApp(
                                     onNavigateToSettings = {
                                         isViewingSettings = true
                                     },
-                                    onOpenStudio = { isViewingStudio = true }
+                                    onOpenStudio = { isViewingStudio = true },
+                                    onOpenContentHub = { isViewingContentHub = true }
                                 )
                             }
                         }
