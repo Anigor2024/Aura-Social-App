@@ -54,6 +54,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -69,6 +70,7 @@ import com.samr.social.core.designsystem.components.AuraPostCard
 import com.samr.social.core.designsystem.components.AuraPrimaryButton
 import com.samr.social.core.designsystem.components.AuraSecondaryButton
 import com.samr.social.core.model.CatchUpSummary
+import com.samr.social.core.model.EchoNote
 import com.samr.social.core.model.MoodType
 import com.samr.social.core.model.Post
 import com.samr.social.core.model.Story
@@ -84,6 +86,8 @@ fun HomeScreen(
     repository: SamrRepository,
     onNavigateToProfile: () -> Unit,
     onNavigateToDiscover: () -> Unit,
+    onCreatePost: () -> Unit = {},
+    onOpenStudio: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
@@ -91,6 +95,7 @@ fun HomeScreen(
 
     val posts by repository.posts.collectAsState()
     val stories by repository.stories.collectAsState()
+    val echoNotes by repository.echoNotes.collectAsState()
     val activeLayer by repository.activeLayer.collectAsState()
     val activeMood by repository.activeMood.collectAsState()
     val isQuietMode by repository.isQuietMode.collectAsState()
@@ -110,6 +115,8 @@ fun HomeScreen(
     var selectedPostId by remember { mutableStateOf<String?>(null) }
     var selectedStory by remember { mutableStateOf<Story?>(null) }
     var showAddStoryDialog by remember { mutableStateOf(false) }
+    var showEchoDialog by remember { mutableStateOf(false) }
+    var selectedEcho by remember { mutableStateOf<EchoNote?>(null) }
     var editingPost by remember { mutableStateOf<Post?>(null) }
     var deletingPost by remember { mutableStateOf<Post?>(null) }
 
@@ -132,12 +139,35 @@ fun HomeScreen(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 80.dp)
     ) {
+        item {
+            EchoTray(
+                notes = echoNotes,
+                onAddClick = { showEchoDialog = true },
+                onNoteClick = {
+                    selectedEcho = it
+                    if (it.isMine) showEchoDialog = true
+                }
+            )
+        }
+
         // Stories Tray
         item {
             StoriesTray(
                 stories = stories,
                 onStoryClick = { selectedStory = it },
                 onAddStoryClick = { showAddStoryDialog = true }
+            )
+        }
+
+        item {
+            SamrTodayBrief(
+                postsCount = posts.size,
+                unreadMessages = repository.catchUpSummary.unreadMessagesCount,
+                isQuietMode = isQuietMode,
+                onCreate = onCreatePost,
+                onCatchUp = { showCatchUpSheet = true },
+                onQuiet = repository::toggleQuietMode,
+                onStudio = onOpenStudio
             )
         }
 
@@ -232,7 +262,8 @@ fun HomeScreen(
                     isOwner = post.author.id == currentUser.id,
                     onEditClick = { editingPost = post },
                     onDeleteClick = { deletingPost = post },
-                    onPinClick = { repository.togglePinPost(post.id) }
+                    onPinClick = { repository.togglePinPost(post.id) },
+                    onResonanceClick = { repository.toggleResonance(post.id) }
                 )
             }
         }
@@ -302,6 +333,74 @@ fun HomeScreen(
                 onClose = { selectedStory = null }
             )
         }
+    }
+
+    if (showEchoDialog) {
+        val mine = echoNotes.firstOrNull { it.isMine }
+        var echoText by remember(showEchoDialog) { mutableStateOf(mine?.text ?: "") }
+        var echoEmoji by remember(showEchoDialog) { mutableStateOf(mine?.emoji ?: "✦") }
+        AlertDialog(
+            onDismissRequest = {
+                showEchoDialog = false
+                selectedEcho = null
+            },
+            title = { Text(stringResource(R.string.echo_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf("✦", "☕", "☀", "◌", "♡", "⚡").forEach { emoji ->
+                            Box(
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .background(
+                                        if (echoEmoji == emoji) AuraChampagne.copy(alpha = 0.2f)
+                                        else MaterialTheme.colorScheme.surfaceVariant
+                                    )
+                                    .clickable { echoEmoji = emoji }
+                                    .padding(horizontal = 10.dp, vertical = 8.dp)
+                            ) {
+                                Text(emoji)
+                            }
+                        }
+                    }
+                    OutlinedTextField(
+                        value = echoText,
+                        onValueChange = { if (it.length <= 72) echoText = it },
+                        label = { Text(stringResource(R.string.echo_hint)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 2
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        repository.setEcho(echoText, echoEmoji)
+                        showEchoDialog = false
+                        selectedEcho = null
+                    },
+                    enabled = echoText.isNotBlank()
+                ) {
+                    Text(stringResource(R.string.echo_edit))
+                }
+            },
+            dismissButton = {
+                if (mine != null) {
+                    TextButton(
+                        onClick = {
+                            repository.deleteMyEcho()
+                            showEchoDialog = false
+                            selectedEcho = null
+                        }
+                    ) {
+                        Text(
+                            stringResource(R.string.echo_delete),
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            }
+        )
     }
 
     if (showAddStoryDialog) {
@@ -583,6 +682,233 @@ private fun StoryViewerContent(
             )
         }
         Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun EchoTray(
+    notes: List<EchoNote>,
+    onAddClick: () -> Unit,
+    onNoteClick: (EchoNote) -> Unit
+) {
+    Column(modifier = Modifier.padding(top = 6.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.echo_title),
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                color = AuraChampagne
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                text = "24h",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .width(118.dp)
+                        .height(82.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(
+                            Brush.linearGradient(
+                                listOf(
+                                    AuraChampagne.copy(alpha = 0.18f),
+                                    AuraViolet.copy(alpha = 0.10f)
+                                )
+                            )
+                        )
+                        .border(1.dp, AuraChampagne.copy(alpha = 0.35f), RoundedCornerShape(20.dp))
+                        .clickable(onClick = onAddClick)
+                        .padding(12.dp)
+                ) {
+                    Column {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = stringResource(R.string.echo_title),
+                            tint = AuraChampagne,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.echo_hint),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            }
+            items(notes, key = { it.id }) { note ->
+                Box(
+                    modifier = Modifier
+                        .width(168.dp)
+                        .height(82.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .border(
+                            1.dp,
+                            if (note.isMine) AuraChampagne.copy(alpha = 0.45f)
+                            else MaterialTheme.colorScheme.outline.copy(alpha = 0.35f),
+                            RoundedCornerShape(20.dp)
+                        )
+                        .clickable { onNoteClick(note) }
+                        .padding(10.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.Top) {
+                        AuraAvatar(
+                            imageUrl = note.author.avatarUrl,
+                            name = note.author.displayName,
+                            size = 34.dp,
+                            isVerified = note.author.isVerified
+                        )
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(horizontal = 8.dp)
+                        ) {
+                            Text(
+                                text = note.emoji + "  " + note.text,
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 2
+                            )
+                            Spacer(modifier = Modifier.height(3.dp))
+                            Text(
+                                text = note.author.displayName,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SamrTodayBrief(
+    postsCount: Int,
+    unreadMessages: Int,
+    isQuietMode: Boolean,
+    onCreate: () -> Unit,
+    onCatchUp: () -> Unit,
+    onQuiet: () -> Unit,
+    onStudio: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 12.dp, vertical = 10.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .background(
+                Brush.linearGradient(
+                    listOf(
+                        AuraViolet.copy(alpha = 0.17f),
+                        AuraChampagne.copy(alpha = 0.11f),
+                        MaterialTheme.colorScheme.surface
+                    )
+                )
+            )
+            .border(1.dp, AuraChampagne.copy(alpha = 0.22f), RoundedCornerShape(24.dp))
+            .padding(16.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(CircleShape)
+                    .background(AuraChampagne.copy(alpha = 0.16f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = AuraChampagne)
+            }
+            Column(modifier = Modifier.padding(horizontal = 10.dp)) {
+                Text(
+                    stringResource(R.string.today_brief),
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                )
+                Text(
+                    stringResource(R.string.today_brief_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            BriefMetric(postsCount.toString(), stringResource(R.string.posts_stat), Modifier.weight(1f))
+            BriefMetric(unreadMessages.toString(), stringResource(R.string.nav_inbox), Modifier.weight(1f))
+            BriefMetric(if (isQuietMode) "ON" else "OFF", stringResource(R.string.quick_quiet), Modifier.weight(1f))
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(7.dp)
+        ) {
+            QuickActionChip(stringResource(R.string.quick_create), onCreate, Modifier.weight(1f))
+            QuickActionChip(stringResource(R.string.quick_catchup), onCatchUp, Modifier.weight(1f))
+            QuickActionChip(stringResource(R.string.quick_quiet), onQuiet, Modifier.weight(1f))
+            QuickActionChip(stringResource(R.string.quick_studio), onStudio, Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+private fun BriefMetric(value: String, label: String, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.72f))
+            .padding(horizontal = 10.dp, vertical = 9.dp)
+    ) {
+        Text(
+            value,
+            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+            color = AuraChampagne
+        )
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1
+        )
+    }
+}
+
+@Composable
+private fun QuickActionChip(
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 6.dp, vertical = 9.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1
+        )
     }
 }
 
