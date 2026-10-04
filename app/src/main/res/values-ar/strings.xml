@@ -529,4 +529,9 @@
     <string name="media_caption">تعليق الوسائط</string>
     <string name="choose_from_studio">اختيار من استوديو سَمَر</string>
     <string name="recent_media">الوسائط الأخيرة</string>
+    <string name="download_media">تنزيل الوسائط</string>
+    <string name="remix_media">إعادة المزج في استوديو سَمَر</string>
+    <string name="downloads_disabled">صاحب المحتوى أوقف تنزيل الوسائط</string>
+    <string name="remix_disabled">صاحب المحتوى أوقف إعادة المزج</string>
+    <string name="media_download_started">بدأ تنزيل الوسائط</string>
 </resources>
