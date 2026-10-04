@@ -307,7 +307,7 @@ fun SamrPostCard(
         }
 
         // Attached Active Discussion Room Indicator
-        if (post.roomTopic != null) {
+        if (post.discussionRoomTopic != null) {
             Spacer(modifier = Modifier.height(12.dp))
             Row(
                 modifier = Modifier
@@ -338,7 +338,7 @@ fun SamrPostCard(
                             color = SamrChampagne
                         )
                         Text(
-                            text = post.roomTopic,
+                            text = post.discussionRoomTopic,
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
                             color = MaterialTheme.colorScheme.onSurface
                         )
