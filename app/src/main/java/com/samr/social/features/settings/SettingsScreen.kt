@@ -73,6 +73,7 @@ fun SettingsScreen(
     onLogout: () -> Unit,
     onResetDemo: () -> Unit,
     onOpenLanguageSelect: () -> Unit = {},
+    onOpenSafetyCenter: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
@@ -151,7 +152,7 @@ fun SettingsScreen(
         SettingsNavigationRow(
             icon = Icons.Outlined.Shield,
             title = stringResource(R.string.privacy_safety),
-            onClick = { infoSection = InfoSection.PRIVACY }
+            onClick = onOpenSafetyCenter
         )
 
         SettingsNavigationRow(
