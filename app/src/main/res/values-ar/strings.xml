@@ -520,4 +520,13 @@
     <string name="studio_quick_clip">إنشاء مقطع</string>
     <string name="studio_quick_story">إنشاء قصة</string>
     <string name="studio_project_count">%1$d عنصر وسائط</string>
+    <string name="media_search">ابحث في وسائطك</string>
+    <string name="media_filter_all">الكل</string>
+    <string name="media_filter_favorites">المفضلة</string>
+    <string name="publish_as_story">نشر كقصة</string>
+    <string name="send_media">إرسال وسائط</string>
+    <string name="attach_media">إرفاق وسائط</string>
+    <string name="media_caption">تعليق الوسائط</string>
+    <string name="choose_from_studio">اختيار من استوديو سَمَر</string>
+    <string name="recent_media">الوسائط الأخيرة</string>
 </resources>
