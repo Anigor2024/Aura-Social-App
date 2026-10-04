@@ -8,9 +8,13 @@ import com.samr.social.core.model.DirectMessage
 import com.samr.social.core.model.MessageStatus
 import com.samr.social.core.model.MoodType
 import com.samr.social.core.model.Post
+import com.samr.social.core.model.PostComment
 import com.samr.social.core.model.PostLifetime
 import com.samr.social.core.model.SamrCircle
+import com.samr.social.core.model.SavedCollection
 import com.samr.social.core.model.SocialLayer
+import com.samr.social.core.model.SocialNotification
+import com.samr.social.core.model.NotificationType
 import com.samr.social.core.model.Story
 import com.samr.social.core.model.User
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -288,6 +292,80 @@ class SamrRepository {
     )
     val posts: StateFlow<List<Post>> = _posts.asStateFlow()
 
+    private val _comments = MutableStateFlow(
+        listOf(
+            PostComment(
+                id = "comment_1",
+                postId = "post_noura_1",
+                author = aziz,
+                text = "الفرق واضح جدًا في ترتيب الخطوات. أكثر شيء أعجبني هو بساطة القرار بدون التضحية بالوضوح.",
+                timestampLabel = "12 د"
+            ),
+            PostComment(
+                id = "comment_2",
+                postId = "post_noura_1",
+                author = reem,
+                text = "هذا النوع من التحسينات هو الذي يجعل المنتج يشعر بأنه طبيعي بدل أن يكون مجرد واجهة جميلة.",
+                timestampLabel = "8 د",
+                likesCount = 14
+            )
+        )
+    )
+    val comments: StateFlow<List<PostComment>> = _comments.asStateFlow()
+
+    private val _notifications = MutableStateFlow(
+        listOf(
+            SocialNotification(
+                id = "notif_1",
+                actor = aziz,
+                type = NotificationType.COMMENT,
+                title = "تعليق جديد",
+                body = "عبدالعزيز علّق على منشورك عن تجربة المستخدم.",
+                timestampLabel = "منذ 8 دقائق"
+            ),
+            SocialNotification(
+                id = "notif_2",
+                actor = faisal,
+                type = NotificationType.LIKE,
+                title = "تفاعل جديد",
+                body = "فيصل و 128 شخصًا أعجبوا بمنشورك الأخير.",
+                timestampLabel = "منذ 25 دقيقة"
+            ),
+            SocialNotification(
+                id = "notif_3",
+                actor = reem,
+                type = NotificationType.MENTION,
+                title = "تمت الإشارة إليك",
+                body = "ريم أشارت إليك في منشور تعاوني جديد.",
+                timestampLabel = "منذ ساعة"
+            ),
+            SocialNotification(
+                id = "notif_4",
+                actor = null,
+                type = NotificationType.SYSTEM,
+                title = "استدراك ذكي",
+                body = "لديك 12 تحديثًا مهمًا من دوائرك ومجتمعاتك.",
+                timestampLabel = "اليوم"
+            )
+        )
+    )
+    val notifications: StateFlow<List<SocialNotification>> = _notifications.asStateFlow()
+
+    private val _savedCollections = MutableStateFlow(
+        listOf(
+            SavedCollection(
+                id = "collection_inspiration",
+                title = "إلهام",
+                postIds = _posts.value.filter { it.isBookmarked }.map { it.id }
+            ),
+            SavedCollection(
+                id = "collection_work",
+                title = "للعمل لاحقًا"
+            )
+        )
+    )
+    val savedCollections: StateFlow<List<SavedCollection>> = _savedCollections.asStateFlow()
+
     // Clips with actual working video stream URLs
     private val _clips = MutableStateFlow(
         listOf(
@@ -481,7 +559,30 @@ class SamrRepository {
     }
 
     fun toggleFollow(userId: String) {
-        // Toggle follow in memory
+        fun toggleUser(user: User): User {
+            if (user.id != userId) return user
+            val following = !user.isFollowing
+            return user.copy(
+                isFollowing = following,
+                followersCount = if (following) user.followersCount + 1 else maxOf(0, user.followersCount - 1)
+            )
+        }
+
+        _posts.value = _posts.value.map { post ->
+            post.copy(
+                author = toggleUser(post.author),
+                collaborator = post.collaborator?.let(::toggleUser)
+            )
+        }
+        _stories.value = _stories.value.map { story ->
+            story.copy(author = toggleUser(story.author))
+        }
+        _clips.value = _clips.value.map { clip ->
+            clip.copy(author = toggleUser(clip.author))
+        }
+        _conversations.value = _conversations.value.map { conversation ->
+            conversation.copy(participant = toggleUser(conversation.participant))
+        }
     }
 
     fun setSocialLayer(layer: SocialLayer) {
@@ -501,7 +602,9 @@ class SamrRepository {
         mediaUrls: List<String>,
         circle: SamrCircle?,
         lifetime: PostLifetime,
-        collaborator: User?
+        collaborator: User?,
+        allowComments: Boolean = true,
+        hideLikeCount: Boolean = false
     ) {
         val newPost = Post(
             id = "post_${UUID.randomUUID().toString().take(8)}",
@@ -518,7 +621,9 @@ class SamrRepository {
             socialLayer = _activeLayer.value,
             mood = _activeMood.value,
             lifetime = lifetime,
-            collaborator = collaborator
+            collaborator = collaborator,
+            allowComments = allowComments,
+            hideLikeCount = hideLikeCount
         )
         _posts.value = listOf(newPost) + _posts.value
     }
@@ -552,5 +657,172 @@ class SamrRepository {
                 clip.copy(isLiked = newLiked, likesCount = newCount)
             } else clip
         }
+    }
+
+    fun updateProfile(
+        displayName: String,
+        username: String,
+        bio: String,
+        location: String,
+        avatarUrl: String
+    ) {
+        val updated = _currentUser.value.copy(
+            displayName = displayName.trim(),
+            username = username.trim().removePrefix("@"),
+            bio = bio.trim(),
+            location = location.trim(),
+            avatarUrl = avatarUrl.trim().ifBlank { _currentUser.value.avatarUrl }
+        )
+        _currentUser.value = updated
+        _posts.value = _posts.value.map { post ->
+            if (post.author.id == updated.id) post.copy(author = updated) else post
+        }
+        _stories.value = _stories.value.map { story ->
+            if (story.author.id == updated.id) story.copy(author = updated) else story
+        }
+        _clips.value = _clips.value.map { clip ->
+            if (clip.author.id == updated.id) clip.copy(author = updated) else clip
+        }
+    }
+
+    fun editPost(postId: String, newText: String) {
+        _posts.value = _posts.value.map { post ->
+            if (post.id == postId) post.copy(text = newText.trim()) else post
+        }
+    }
+
+    fun deletePost(postId: String) {
+        _posts.value = _posts.value.filterNot { it.id == postId }
+        _comments.value = _comments.value.filterNot { it.postId == postId }
+        _savedCollections.value = _savedCollections.value.map { collection ->
+            collection.copy(postIds = collection.postIds.filterNot { it == postId })
+        }
+    }
+
+    fun togglePinPost(postId: String) {
+        _posts.value = _posts.value.map { post ->
+            if (post.id == postId) post.copy(isPinned = !post.isPinned) else post
+        }
+    }
+
+    fun addComment(postId: String, text: String) {
+        if (text.isBlank()) return
+        val post = _posts.value.firstOrNull { it.id == postId } ?: return
+        if (!post.allowComments) return
+        val newComment = PostComment(
+            id = "comment_${UUID.randomUUID().toString().take(8)}",
+            postId = postId,
+            author = _currentUser.value,
+            text = text.trim()
+        )
+        _comments.value = listOf(newComment) + _comments.value
+        _posts.value = _posts.value.map {
+            if (it.id == postId) it.copy(commentsCount = it.commentsCount + 1) else it
+        }
+    }
+
+    fun deleteComment(commentId: String) {
+        val comment = _comments.value.firstOrNull { it.id == commentId } ?: return
+        _comments.value = _comments.value.filterNot { it.id == commentId }
+        _posts.value = _posts.value.map {
+            if (it.id == comment.postId) it.copy(commentsCount = maxOf(0, it.commentsCount - 1)) else it
+        }
+    }
+
+    fun commentsForPost(postId: String): List<PostComment> =
+        _comments.value.filter { it.postId == postId }
+
+    fun addStory(mediaUrl: String, caption: String) {
+        val story = Story(
+            id = "story_${UUID.randomUUID().toString().take(8)}",
+            author = _currentUser.value,
+            mediaUrl = mediaUrl.trim().ifBlank {
+                "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80"
+            },
+            timestampMinutesAgo = 0,
+            caption = caption.trim()
+        )
+        _stories.value = listOf(story) + _stories.value
+    }
+
+    fun deleteStory(storyId: String) {
+        _stories.value = _stories.value.filterNot { it.id == storyId }
+    }
+
+    fun createCircle(nameAr: String, nameEn: String, description: String) {
+        if (nameAr.isBlank() && nameEn.isBlank()) return
+        val circle = SamrCircle(
+            id = "circle_${UUID.randomUUID().toString().take(8)}",
+            nameEn = nameEn.trim().ifBlank { nameAr.trim() },
+            nameAr = nameAr.trim().ifBlank { nameEn.trim() },
+            description = description.trim(),
+            colorHex = 0xFFD4AF37,
+            memberCount = 1
+        )
+        _circles.value = _circles.value + circle
+    }
+
+    fun deleteCircle(circleId: String) {
+        _circles.value = _circles.value.filterNot { it.id == circleId }
+        _posts.value = _posts.value.map { post ->
+            if (post.circle?.id == circleId) post.copy(circle = null) else post
+        }
+    }
+
+    fun markNotificationRead(notificationId: String) {
+        _notifications.value = _notifications.value.map {
+            if (it.id == notificationId) it.copy(isRead = true) else it
+        }
+    }
+
+    fun markAllNotificationsRead() {
+        _notifications.value = _notifications.value.map { it.copy(isRead = true) }
+    }
+
+    fun deleteNotification(notificationId: String) {
+        _notifications.value = _notifications.value.filterNot { it.id == notificationId }
+    }
+
+    fun createSavedCollection(title: String) {
+        if (title.isBlank()) return
+        _savedCollections.value = _savedCollections.value + SavedCollection(
+            id = "collection_${UUID.randomUUID().toString().take(8)}",
+            title = title.trim()
+        )
+    }
+
+    fun deleteSavedCollection(collectionId: String) {
+        _savedCollections.value = _savedCollections.value.filterNot { it.id == collectionId }
+    }
+
+    fun togglePostInCollection(collectionId: String, postId: String) {
+        _savedCollections.value = _savedCollections.value.map { collection ->
+            if (collection.id != collectionId) {
+                collection
+            } else {
+                val ids = if (postId in collection.postIds) {
+                    collection.postIds - postId
+                } else {
+                    collection.postIds + postId
+                }
+                collection.copy(postIds = ids)
+            }
+        }
+    }
+
+    fun editMessage(messageId: String, text: String) {
+        if (text.isBlank()) return
+        _threadMessages.value = _threadMessages.value.map {
+            if (it.id == messageId && it.isMine) it.copy(text = text.trim()) else it
+        }
+    }
+
+    fun deleteMessage(messageId: String) {
+        _threadMessages.value = _threadMessages.value.filterNot { it.id == messageId && it.isMine }
+    }
+
+    fun deleteConversation(conversationId: String) {
+        _conversations.value = _conversations.value.filterNot { it.id == conversationId }
+        _threadMessages.value = _threadMessages.value.filterNot { it.conversationId == conversationId }
     }
 }
