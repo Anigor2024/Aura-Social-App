@@ -285,4 +285,9 @@
     <string name="content_controls">إدارة المحتوى</string>
     <string name="privacy_audience">الجمهور والخصوصية</string>
     <string name="advanced_publish">خيارات نشر متقدمة</string>
+    <string name="people_results">الأشخاص</string>
+    <string name="no_results">لا توجد نتائج مطابقة</string>
+    <string name="share_action">مشاركة</string>
+    <string name="profile_clips_empty">لا توجد مقاطع بعد</string>
+    <string name="your_clips">مقاطعك</string>
 </resources>
