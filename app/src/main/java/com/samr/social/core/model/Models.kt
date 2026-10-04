@@ -67,6 +67,7 @@ data class Post(
     val lifetime: PostLifetime = PostLifetime.PERMANENT,
     val collaborator: User? = null,
     val discussionRoomId: String? = null,
+    val discussionRoomTopic: String? = null,
     val isQuietModeEligible: Boolean = true
 )
 
