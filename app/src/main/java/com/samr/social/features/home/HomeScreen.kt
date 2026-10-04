@@ -102,6 +102,10 @@ fun HomeScreen(
     val isQuietMode by repository.isQuietMode.collectAsState()
     val currentUser by repository.currentUser.collectAsState()
     val comments by repository.comments.collectAsState()
+    val experiencePreferences by repository.experiencePreferences.collectAsState()
+    val mutedUserIds by repository.mutedUserIds.collectAsState()
+    val majlisRooms by repository.majlisRooms.collectAsState()
+    val notifications by repository.notifications.collectAsState()
 
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val tabTitles = listOf(
@@ -121,8 +125,9 @@ fun HomeScreen(
     var editingPost by remember { mutableStateOf<Post?>(null) }
     var deletingPost by remember { mutableStateOf<Post?>(null) }
 
-    val filteredPosts = remember(posts, activeLayer, activeMood, selectedTabIndex) {
+    val filteredPosts = remember(posts, activeLayer, activeMood, selectedTabIndex, mutedUserIds) {
         posts.sortedByDescending { it.isPinned }.filter { post ->
+            if (post.isHidden || post.author.id in mutedUserIds) return@filter false
             val matchesLayer = post.socialLayer == activeLayer || selectedTabIndex == 0
             val matchesMood = activeMood == MoodType.ALL || post.mood == activeMood
             val matchesTab = when (selectedTabIndex) {
@@ -155,7 +160,10 @@ fun HomeScreen(
         item {
             StoriesTray(
                 stories = stories,
-                onStoryClick = { selectedStory = it },
+                onStoryClick = {
+                    repository.markStoryViewed(it.id)
+                    selectedStory = it
+                },
                 onAddStoryClick = { showAddStoryDialog = true }
             )
         }
@@ -170,6 +178,14 @@ fun HomeScreen(
                 onQuiet = repository::toggleQuietMode,
                 onStudio = onOpenStudio,
                 onMajlis = onOpenMajlis
+            )
+        }
+
+        item {
+            SocialPulseBar(
+                liveCount = majlisRooms.count { it.status == com.samr.social.core.model.MajlisStatus.LIVE },
+                unreadSignals = notifications.count { !it.isRead },
+                onClick = onOpenMajlis
             )
         }
 
@@ -266,7 +282,11 @@ fun HomeScreen(
                     onDeleteClick = { deletingPost = post },
                     onPinClick = { repository.togglePinPost(post.id) },
                     onResonanceClick = { repository.toggleResonance(post.id) },
-                    onPollVote = { optionId -> repository.votePoll(post.id, optionId) }
+                    onPollVote = { optionId -> repository.votePoll(post.id, optionId) },
+                    onMuteCreatorClick = { repository.toggleMuteUser(post.author.id) },
+                    onReportClick = { repository.reportPost(post.id) },
+                    onHideClick = { repository.hidePost(post.id) },
+                    compactMode = experiencePreferences.compactFeed
                 )
             }
         }
@@ -314,6 +334,7 @@ fun HomeScreen(
                     currentUserId = currentUser.id,
                     onAddComment = { repository.addComment(postId, it) },
                     onDeleteComment = repository::deleteComment,
+                    onLikeComment = repository::toggleCommentLike,
                     onClose = { selectedPostId = null }
                 )
             }
@@ -514,6 +535,7 @@ fun CommentsSheetContent(
     currentUserId: String,
     onAddComment: (String) -> Unit,
     onDeleteComment: (String) -> Unit,
+    onLikeComment: (String) -> Unit = {},
     onClose: () -> Unit
 ) {
     var commentText by remember { mutableStateOf("") }
@@ -567,11 +589,29 @@ fun CommentsSheetContent(
                             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
                         )
                         Text(comment.text, style = MaterialTheme.typography.bodyMedium)
-                        Text(
-                            comment.timestampLabel,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                comment.timestampLabel,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (comment.isLiked) stringResource(R.string.comment_liked)
+                                else stringResource(R.string.comment_like),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (comment.isLiked) AuraChampagne else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.clickable { onLikeComment(comment.id) }
+                            )
+                            if (comment.likesCount > 0) {
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    comment.likesCount.toString(),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
                     }
                     if (comment.author.id == currentUserId) {
                         TextButton(onClick = { onDeleteComment(comment.id) }) {
@@ -797,6 +837,53 @@ private fun EchoTray(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SocialPulseBar(
+    liveCount: Int,
+    unreadSignals: Int,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .padding(horizontal = 12.dp, vertical = 4.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(AuraChampagne.copy(alpha = 0.08f))
+            .border(1.dp, AuraChampagne.copy(alpha = 0.22f), RoundedCornerShape(18.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 11.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(9.dp)
+                .clip(CircleShape)
+                .background(Color(0xFFFF4D67))
+        )
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 10.dp)
+        ) {
+            Text(
+                stringResource(R.string.social_pulse),
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                color = AuraChampagne
+            )
+            Text(
+                stringResource(R.string.social_pulse_desc, liveCount, unreadSignals),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Text(
+            stringResource(R.string.quick_majlis),
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+            color = AuraChampagne
+        )
     }
 }
 
