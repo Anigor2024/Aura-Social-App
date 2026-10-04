@@ -263,7 +263,8 @@ fun HomeScreen(
                     onEditClick = { editingPost = post },
                     onDeleteClick = { deletingPost = post },
                     onPinClick = { repository.togglePinPost(post.id) },
-                    onResonanceClick = { repository.toggleResonance(post.id) }
+                    onResonanceClick = { repository.toggleResonance(post.id) },
+                    onPollVote = { optionId -> repository.votePoll(post.id, optionId) }
                 )
             }
         }
