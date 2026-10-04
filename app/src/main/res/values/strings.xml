@@ -286,6 +286,6 @@
     <string name="no_comments_yet">No comments yet. Start the conversation.</string>
     <string name="profile_updated">Profile updated</string>
     <string name="content_controls">Content controls</string>
-    <string name="privacy_audience">Audience & privacy</string>
+    <string name="privacy_audience">Audience &amp; privacy</string>
     <string name="advanced_publish">Advanced publishing</string>
 </resources>
