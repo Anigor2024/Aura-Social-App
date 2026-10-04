@@ -491,7 +491,8 @@ fun ProfileScreen(
                         onEditClick = { editingPostId = post.id },
                         onDeleteClick = { deletingPostId = post.id },
                         onPinClick = { repository.togglePinPost(post.id) },
-                        onResonanceClick = { repository.toggleResonance(post.id) }
+                        onResonanceClick = { repository.toggleResonance(post.id) },
+                        onPollVote = { optionId -> repository.votePoll(post.id, optionId) }
                     )
                 }
             }
