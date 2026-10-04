@@ -1,5 +1,6 @@
 package com.samr.social.features.clips
 
+import android.content.Intent
 import android.view.HapticFeedbackConstants
 import android.view.ViewGroup
 import androidx.annotation.OptIn
@@ -35,17 +36,24 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.VolumeMute
 import androidx.compose.material.icons.automirrored.outlined.VolumeUp
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -84,12 +92,14 @@ import coil.request.ImageRequest
 import com.samr.social.R
 import com.samr.social.core.designsystem.components.AuraAvatar
 import com.samr.social.core.model.Clip
+import com.samr.social.core.model.ClipComment
 import com.samr.social.core.repository.SamrRepository
 import com.samr.social.core.util.FormatUtils
 import com.samr.social.ui.theme.AuraChampagne
 import com.samr.social.ui.theme.AuraRose
 import com.samr.social.ui.theme.ObsidianVoid
 
+@kotlin.OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ClipsScreen(
     repository: SamrRepository,
@@ -97,9 +107,12 @@ fun ClipsScreen(
     modifier: Modifier = Modifier
 ) {
     val clips by repository.clips.collectAsState()
+    val clipComments by repository.clipComments.collectAsState()
+    val currentUser by repository.currentUser.collectAsState()
     val isQuietMode by repository.isQuietMode.collectAsState()
     val pagerState = rememberPagerState(pageCount = { clips.size })
     var isMuted by remember { mutableStateOf(false) }
+    var commentingClipId by remember { mutableStateOf<String?>(null) }
 
     Box(
         modifier = modifier
@@ -120,8 +133,31 @@ fun ClipsScreen(
                 isQuietMode = isQuietMode,
                 onToggleMute = { isMuted = !isMuted },
                 onLike = { repository.toggleClipLike(clip.id) },
+                onSave = { repository.toggleClipSave(clip.id) },
+                onComment = { commentingClipId = clip.id },
+                onFollow = { repository.toggleFollow(clip.author.id) },
                 onProfileClick = onNavigateToProfile
             )
+        }
+    }
+
+    commentingClipId?.let { clipId ->
+        val clip = clips.firstOrNull { it.id == clipId }
+        if (clip != null) {
+            ModalBottomSheet(
+                onDismissRequest = { commentingClipId = null },
+                containerColor = MaterialTheme.colorScheme.surface,
+                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            ) {
+                ClipCommentsSheet(
+                    clip = clip,
+                    comments = clipComments.filter { it.clipId == clipId },
+                    currentUserId = currentUser.id,
+                    onAdd = { repository.addClipComment(clipId, it) },
+                    onDelete = repository::deleteClipComment,
+                    onClose = { commentingClipId = null }
+                )
+            }
         }
     }
 }
@@ -135,6 +171,9 @@ fun ClipItemPlayerView(
     isQuietMode: Boolean,
     onToggleMute: () -> Unit,
     onLike: () -> Unit,
+    onSave: () -> Unit,
+    onComment: () -> Unit,
+    onFollow: () -> Unit,
     onProfileClick: () -> Unit
 ) {
     val context = LocalContext.current
@@ -382,13 +421,22 @@ fun ClipItemPlayerView(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
-                            .border(1.dp, Color.White.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                            .background(
+                                if (clip.author.isFollowing) Color.White.copy(alpha = 0.18f)
+                                else AuraChampagne.copy(alpha = 0.92f)
+                            )
+                            .border(
+                                1.dp,
+                                if (clip.author.isFollowing) Color.White.copy(alpha = 0.45f) else AuraChampagne,
+                                RoundedCornerShape(12.dp)
+                            )
+                            .clickable(onClick = onFollow)
                             .padding(horizontal = 10.dp, vertical = 4.dp)
                     ) {
                         Text(
-                            text = stringResource(R.string.follow),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White
+                            text = if (clip.author.isFollowing) stringResource(R.string.following) else stringResource(R.string.follow),
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                            color = if (clip.author.isFollowing) Color.White else Color.Black
                         )
                     }
                 }
@@ -458,7 +506,10 @@ fun ClipItemPlayerView(
                 // Comment Action
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     IconButton(
-                        onClick = { view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP) },
+                        onClick = {
+                            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                            onComment()
+                        },
                         modifier = Modifier
                             .size(46.dp)
                             .clip(CircleShape)
@@ -480,9 +531,34 @@ fun ClipItemPlayerView(
                     }
                 }
 
+                IconButton(
+                    onClick = {
+                        view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                        onSave()
+                    },
+                    modifier = Modifier
+                        .size(46.dp)
+                        .clip(CircleShape)
+                        .background(Color.Black.copy(alpha = 0.4f))
+                ) {
+                    Icon(
+                        imageVector = if (clip.isSaved) Icons.Default.Bookmark else Icons.Outlined.BookmarkBorder,
+                        contentDescription = stringResource(if (clip.isSaved) R.string.unsave_clip else R.string.save_clip),
+                        tint = if (clip.isSaved) AuraChampagne else Color.White,
+                        modifier = Modifier.size(23.dp)
+                    )
+                }
+
                 // Share Action
                 IconButton(
-                    onClick = { view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP) },
+                    onClick = {
+                        view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                        val intent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, clip.caption + "\n" + clip.videoUrl)
+                        }
+                        context.startActivity(Intent.createChooser(intent, null))
+                    },
                     modifier = Modifier
                         .size(46.dp)
                         .clip(CircleShape)
@@ -515,5 +591,121 @@ fun ClipItemPlayerView(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ClipCommentsSheet(
+    clip: Clip,
+    comments: List<ClipComment>,
+    currentUserId: String,
+    onAdd: (String) -> Unit,
+    onDelete: (String) -> Unit,
+    onClose: () -> Unit
+) {
+    var input by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp, vertical = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    stringResource(R.string.clip_comments),
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                )
+                Text(
+                    clip.caption,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2
+                )
+            }
+            TextButton(onClick = onClose) {
+                Text(stringResource(R.string.close_dialog))
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        comments.take(8).forEach { comment ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                AuraAvatar(
+                    imageUrl = comment.author.avatarUrl,
+                    name = comment.author.displayName,
+                    size = 36.dp,
+                    isVerified = comment.author.isVerified
+                )
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 10.dp)
+                ) {
+                    Text(
+                        comment.author.displayName,
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
+                    )
+                    Text(comment.text, style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        comment.timestampLabel,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                if (comment.author.id == currentUserId) {
+                    TextButton(onClick = { onDelete(comment.id) }) {
+                        Text(
+                            stringResource(R.string.delete_action),
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            }
+        }
+
+        if (comments.isEmpty()) {
+            Text(
+                stringResource(R.string.no_comments_yet),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(vertical = 16.dp)
+            )
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedTextField(
+                value = input,
+                onValueChange = { input = it },
+                placeholder = { Text(stringResource(R.string.add_comment_hint)) },
+                modifier = Modifier.weight(1f),
+                maxLines = 3
+            )
+            TextButton(
+                onClick = {
+                    onAdd(input)
+                    input = ""
+                },
+                enabled = input.isNotBlank()
+            ) {
+                Text(stringResource(R.string.send_action), color = AuraChampagne)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(22.dp))
     }
 }
