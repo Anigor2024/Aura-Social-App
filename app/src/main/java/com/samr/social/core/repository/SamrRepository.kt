@@ -1084,6 +1084,18 @@ class SamrRepository {
         }
     }
 
+    fun toggleCommentLike(commentId: String) {
+        _comments.value = _comments.value.map { comment ->
+            if (comment.id == commentId) {
+                val liked = !comment.isLiked
+                comment.copy(
+                    isLiked = liked,
+                    likesCount = if (liked) comment.likesCount + 1 else maxOf(0, comment.likesCount - 1)
+                )
+            } else comment
+        }
+    }
+
     fun commentsForPost(postId: String): List<PostComment> =
         _comments.value.filter { it.postId == postId }
 
@@ -1102,6 +1114,12 @@ class SamrRepository {
 
     fun deleteStory(storyId: String) {
         _stories.value = _stories.value.filterNot { it.id == storyId }
+    }
+
+    fun markStoryViewed(storyId: String) {
+        _stories.value = _stories.value.map { story ->
+            if (story.id == storyId) story.copy(isViewed = true) else story
+        }
     }
 
     fun createCircle(nameAr: String, nameEn: String, description: String) {
@@ -1158,6 +1176,125 @@ class SamrRepository {
         )
     }
 
+    fun updateExperiencePreferences(
+        autoplayVideos: Boolean,
+        reducedMotion: Boolean,
+        compactFeed: Boolean,
+        hapticFeedback: Boolean,
+        highQualityMedia: Boolean,
+        showReadReceipts: Boolean
+    ) {
+        _experiencePreferences.value = ExperiencePreferences(
+            autoplayVideos = autoplayVideos,
+            reducedMotion = reducedMotion,
+            compactFeed = compactFeed,
+            hapticFeedback = hapticFeedback,
+            highQualityMedia = highQualityMedia,
+            showReadReceipts = showReadReceipts
+        )
+    }
+
+    fun saveDraft(
+        text: String,
+        mediaUrl: String?,
+        locationTag: String,
+        altText: String
+    ) {
+        if (text.isBlank() && mediaUrl.isNullOrBlank()) return
+        val draft = PostDraft(
+            id = "draft_${UUID.randomUUID().toString().take(8)}",
+            text = text.trim(),
+            mediaUrl = mediaUrl?.trim()?.takeIf { it.isNotBlank() },
+            locationTag = locationTag.trim(),
+            altText = altText.trim(),
+            updatedLabel = "الآن"
+        )
+        _drafts.value = listOf(draft) + _drafts.value
+    }
+
+    fun deleteDraft(draftId: String) {
+        _drafts.value = _drafts.value.filterNot { it.id == draftId }
+    }
+
+    fun schedulePost(
+        text: String,
+        mediaUrl: String?,
+        scheduledLabel: String,
+        locationTag: String,
+        altText: String
+    ) {
+        if (text.isBlank() && mediaUrl.isNullOrBlank()) return
+        val scheduled = ScheduledPost(
+            id = "scheduled_${UUID.randomUUID().toString().take(8)}",
+            text = text.trim(),
+            mediaUrl = mediaUrl?.trim()?.takeIf { it.isNotBlank() },
+            scheduledLabel = scheduledLabel.trim().ifBlank { "لاحقًا" },
+            locationTag = locationTag.trim(),
+            altText = altText.trim()
+        )
+        _scheduledPosts.value = listOf(scheduled) + _scheduledPosts.value
+    }
+
+    fun deleteScheduledPost(postId: String) {
+        _scheduledPosts.value = _scheduledPosts.value.filterNot { it.id == postId }
+    }
+
+    fun publishScheduledPost(postId: String) {
+        val scheduled = _scheduledPosts.value.firstOrNull { it.id == postId } ?: return
+        publishPost(
+            text = scheduled.text,
+            mediaUrls = scheduled.mediaUrl?.let(::listOf) ?: emptyList(),
+            circle = null,
+            lifetime = PostLifetime.PERMANENT,
+            collaborator = null,
+            locationTag = scheduled.locationTag,
+            altText = scheduled.altText
+        )
+        deleteScheduledPost(postId)
+    }
+
+    fun addRecentSearch(query: String) {
+        val normalized = query.trim()
+        if (normalized.isBlank()) return
+        _recentSearches.value = listOf(normalized) +
+            _recentSearches.value.filterNot { it.equals(normalized, ignoreCase = true) }.take(7)
+    }
+
+    fun clearRecentSearches() {
+        _recentSearches.value = emptyList()
+    }
+
+    fun toggleMuteUser(userId: String) {
+        _mutedUserIds.value = if (userId in _mutedUserIds.value) {
+            _mutedUserIds.value - userId
+        } else {
+            _mutedUserIds.value + userId
+        }
+    }
+
+    fun toggleBlockUser(userId: String) {
+        _blockedUserIds.value = if (userId in _blockedUserIds.value) {
+            _blockedUserIds.value - userId
+        } else {
+            _blockedUserIds.value + userId
+        }
+        if (userId in _blockedUserIds.value) {
+            _mutedUserIds.value = _mutedUserIds.value + userId
+        }
+    }
+
+    fun reportPost(postId: String) {
+        _posts.value = _posts.value.map {
+            if (it.id == postId) it.copy(isReported = true) else it
+        }
+    }
+
+    fun hidePost(postId: String) {
+        _posts.value = _posts.value.map {
+            if (it.id == postId) it.copy(isHidden = true) else it
+        }
+    }
+
     fun createSavedCollection(title: String) {
         if (title.isBlank()) return
         _savedCollections.value = _savedCollections.value + SavedCollection(
@@ -1189,6 +1326,35 @@ class SamrRepository {
         if (text.isBlank()) return
         _threadMessages.value = _threadMessages.value.map {
             if (it.id == messageId && it.isMine) it.copy(text = text.trim()) else it
+        }
+    }
+
+    fun reactToMessage(messageId: String, reaction: String?) {
+        _threadMessages.value = _threadMessages.value.map { message ->
+            if (message.id == messageId) message.copy(reaction = reaction) else message
+        }
+    }
+
+    fun toggleConversationPin(conversationId: String) {
+        _conversations.value = _conversations.value.map { conversation ->
+            if (conversation.id == conversationId) conversation.copy(isPinned = !conversation.isPinned) else conversation
+        }
+    }
+
+    fun toggleConversationMute(conversationId: String) {
+        _conversations.value = _conversations.value.map { conversation ->
+            if (conversation.id == conversationId) conversation.copy(isMuted = !conversation.isMuted) else conversation
+        }
+    }
+
+    fun markConversationRead(conversationId: String) {
+        _conversations.value = _conversations.value.map { conversation ->
+            if (conversation.id == conversationId) conversation.copy(unreadCount = 0) else conversation
+        }
+        _threadMessages.value = _threadMessages.value.map { message ->
+            if (message.conversationId == conversationId && !message.isMine) {
+                message.copy(status = MessageStatus.READ)
+            } else message
         }
     }
 
