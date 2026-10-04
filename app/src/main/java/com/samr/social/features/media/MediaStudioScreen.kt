@@ -41,6 +41,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -119,6 +120,13 @@ fun MediaStudioScreen(
     var section by remember { mutableIntStateOf(0) }
     var selectedIds by remember { mutableStateOf<Set<String>>(emptySet()) }
     var editingAsset by remember { mutableStateOf<MediaAsset?>(null) }
+
+    val sectionLabels = listOf(
+        stringResource(R.string.studio_library),
+        stringResource(R.string.studio_camera),
+        stringResource(R.string.studio_design),
+        stringResource(R.string.studio_audio)
+    )
 
     val importImage = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
@@ -210,21 +218,8 @@ fun MediaStudioScreen(
             contentPadding = PaddingValues(horizontal = 14.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(
-                listOf(
-                    stringResource(R.string.studio_library),
-                    stringResource(R.string.studio_camera),
-                    stringResource(R.string.studio_design),
-                    stringResource(R.string.studio_audio)
-                )
-            ) { label ->
-                val labels = listOf(
-                    stringResource(R.string.studio_library),
-                    stringResource(R.string.studio_camera),
-                    stringResource(R.string.studio_design),
-                    stringResource(R.string.studio_audio)
-                )
-                val index = labels.indexOf(label)
+            items(sectionLabels) { label ->
+                val index = sectionLabels.indexOf(label)
                 StudioTab(
                     label = label,
                     selected = section == index,
@@ -684,8 +679,8 @@ private fun DesignStudioContent(repository: SamrRepository) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(14.dp)
-            .horizontalScroll(rememberScrollState())
     ) {
         Text(
             stringResource(R.string.create_design),
