@@ -60,10 +60,12 @@ import com.samr.social.core.designsystem.components.AuraAvatar
 import com.samr.social.core.designsystem.components.AuraPrimaryButton
 import com.samr.social.core.designsystem.components.getLayerColor
 import com.samr.social.core.designsystem.components.getLayerLabel
+import com.samr.social.core.model.MediaAsset
 import com.samr.social.core.model.PostDraft
 import com.samr.social.core.model.PostLifetime
 import com.samr.social.core.model.SamrCircle
 import com.samr.social.core.repository.SamrRepository
+import com.samr.social.features.media.MediaAssetPreview
 import com.samr.social.ui.theme.AuraChampagne
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -71,9 +73,11 @@ import com.samr.social.ui.theme.AuraChampagne
 fun CreatePostScreen(
     repository: SamrRepository,
     initialDraft: PostDraft? = null,
+    initialMediaAssets: List<MediaAsset> = emptyList(),
     onPostCreated: () -> Unit,
     onCancel: () -> Unit,
     onOpenContentHub: () -> Unit = {},
+    onOpenMediaStudio: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
@@ -86,6 +90,13 @@ fun CreatePostScreen(
     var selectedLifetime by remember { mutableStateOf(PostLifetime.PERMANENT) }
     var selectedCircle by remember { mutableStateOf<SamrCircle?>(null) }
     var attachedImageUrl by remember(initialDraft) { mutableStateOf(initialDraft?.mediaUrl) }
+    var attachedMediaAssets by remember(initialDraft, initialMediaAssets) {
+        mutableStateOf(
+            (initialDraft?.mediaAssets.orEmpty() + initialMediaAssets)
+                .distinctBy { it.id }
+                .take(10)
+        )
+    }
     var mediaUrlInput by remember(initialDraft) { mutableStateOf(initialDraft?.mediaUrl ?: "") }
     var locationTag by remember(initialDraft) { mutableStateOf(initialDraft?.locationTag ?: "") }
     var altText by remember(initialDraft) { mutableStateOf(initialDraft?.altText ?: "") }
@@ -146,7 +157,7 @@ fun CreatePostScreen(
             AuraPrimaryButton(
                 text = stringResource(R.string.publish),
                 onClick = {
-                    if (postText.isNotBlank() || attachedImageUrl != null || hasValidPoll) {
+                    if (postText.isNotBlank() || attachedImageUrl != null || attachedMediaAssets.isNotEmpty() || hasValidPoll) {
                         repository.publishPost(
                             text = postText,
                             mediaUrls = if (attachedImageUrl != null) listOf(attachedImageUrl!!) else emptyList(),
@@ -162,12 +173,13 @@ fun CreatePostScreen(
                                 emptyList()
                             },
                             locationTag = locationTag,
-                            altText = altText
+                            altText = altText,
+                            mediaAssets = attachedMediaAssets
                         )
                         onPostCreated()
                     }
                 },
-                enabled = postText.isNotBlank() || attachedImageUrl != null || hasValidPoll,
+                enabled = postText.isNotBlank() || attachedImageUrl != null || attachedMediaAssets.isNotEmpty() || hasValidPoll,
                 height = 40.dp
             )
         }
@@ -274,6 +286,105 @@ fun CreatePostScreen(
             color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            TextButton(
+                onClick = onOpenMediaStudio,
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(AuraChampagne.copy(alpha = 0.10f))
+            ) {
+                Text(stringResource(R.string.open_media_studio), color = AuraChampagne)
+            }
+            Text(
+                text = stringResource(R.string.media_limit),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(top = 12.dp)
+            )
+        }
+
+        if (attachedMediaAssets.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                stringResource(R.string.attached_media),
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            attachedMediaAssets.forEachIndexed { index, asset ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 5.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .border(
+                            1.dp,
+                            MaterialTheme.colorScheme.outline.copy(alpha = 0.25f),
+                            RoundedCornerShape(16.dp)
+                        )
+                        .padding(10.dp)
+                ) {
+                    MediaAssetPreview(
+                        asset = asset,
+                        height = if (asset.kind == com.samr.social.core.model.MediaKind.AUDIO) 86.dp else 170.dp
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            asset.title,
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.weight(1f),
+                            maxLines = 1
+                        )
+                        TextButton(
+                            enabled = index > 0,
+                            onClick = {
+                                if (index > 0) {
+                                    val mutable = attachedMediaAssets.toMutableList()
+                                    val item = mutable.removeAt(index)
+                                    mutable.add(index - 1, item)
+                                    attachedMediaAssets = mutable
+                                }
+                            }
+                        ) {
+                            Text(stringResource(R.string.move_up))
+                        }
+                        TextButton(
+                            enabled = index < attachedMediaAssets.lastIndex,
+                            onClick = {
+                                if (index < attachedMediaAssets.lastIndex) {
+                                    val mutable = attachedMediaAssets.toMutableList()
+                                    val item = mutable.removeAt(index)
+                                    mutable.add(index + 1, item)
+                                    attachedMediaAssets = mutable
+                                }
+                            }
+                        ) {
+                            Text(stringResource(R.string.move_down))
+                        }
+                        TextButton(
+                            onClick = {
+                                attachedMediaAssets = attachedMediaAssets.filterNot { it.id == asset.id }
+                            }
+                        ) {
+                            Text(
+                                stringResource(R.string.remove_attachment),
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                }
+            }
+        }
 
         OutlinedTextField(
             value = mediaUrlInput,
@@ -500,7 +611,8 @@ fun CreatePostScreen(
                         text = postText,
                         mediaUrl = attachedImageUrl,
                         locationTag = locationTag,
-                        altText = altText
+                        altText = altText,
+                        mediaAssets = attachedMediaAssets
                     )
                     draftSaved = true
                 },
@@ -520,7 +632,8 @@ fun CreatePostScreen(
                             mediaUrl = attachedImageUrl,
                             scheduledLabel = scheduleLabel,
                             locationTag = locationTag,
-                            altText = altText
+                            altText = altText,
+                            mediaAssets = attachedMediaAssets
                         )
                         scheduledSaved = true
                     }
