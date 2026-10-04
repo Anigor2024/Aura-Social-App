@@ -28,6 +28,12 @@ android {
     }
   }
 
+  sourceSets {
+    getByName("main").java.exclude("com/example/**")
+    getByName("test").java.exclude("com/example/**")
+    getByName("androidTest").java.exclude("com/example/**")
+  }
+
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
