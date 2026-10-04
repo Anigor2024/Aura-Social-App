@@ -28,6 +28,18 @@ data class SamrCircle(
     fun localizedName(isArabic: Boolean): String = if (isArabic) nameAr else nameEn
 }
 
+data class ProfileLink(
+    val label: String,
+    val value: String
+)
+
+data class UserAchievement(
+    val id: String,
+    val title: String,
+    val icon: String,
+    val description: String
+)
+
 data class User(
     val id: String,
     val username: String,
@@ -40,7 +52,9 @@ data class User(
     val followingCount: Int = 0,
     val postsCount: Int = 0,
     val isFollowing: Boolean = false,
-    val activeSocialLayer: SocialLayer = SocialLayer.PERSONAL
+    val activeSocialLayer: SocialLayer = SocialLayer.PERSONAL,
+    val profileLinks: List<ProfileLink> = emptyList(),
+    val achievements: List<UserAchievement> = emptyList()
 )
 
 enum class PostLifetime(val id: String, val hours: Int) {
@@ -90,7 +104,11 @@ data class Post(
     val isPinned: Boolean = false,
     val resonanceCount: Int = 0,
     val isResonated: Boolean = false,
-    val poll: PostPoll? = null
+    val poll: PostPoll? = null,
+    val locationTag: String? = null,
+    val altText: String? = null,
+    val isReported: Boolean = false,
+    val isHidden: Boolean = false
 )
 
 data class PostComment(
@@ -121,6 +139,33 @@ data class SavedCollection(
     val id: String,
     val title: String,
     val postIds: List<String> = emptyList()
+)
+
+data class ExperiencePreferences(
+    val autoplayVideos: Boolean = true,
+    val reducedMotion: Boolean = false,
+    val compactFeed: Boolean = false,
+    val hapticFeedback: Boolean = true,
+    val highQualityMedia: Boolean = true,
+    val showReadReceipts: Boolean = true
+)
+
+data class PostDraft(
+    val id: String,
+    val text: String,
+    val mediaUrl: String? = null,
+    val locationTag: String = "",
+    val altText: String = "",
+    val updatedLabel: String = "الآن"
+)
+
+data class ScheduledPost(
+    val id: String,
+    val text: String,
+    val mediaUrl: String? = null,
+    val scheduledLabel: String,
+    val locationTag: String = "",
+    val altText: String = ""
 )
 
 data class PrivacyPreferences(
@@ -184,7 +229,9 @@ data class DirectMessage(
     val voiceDurationSeconds: Int? = null,
     val voiceWaveform: List<Float>? = null,
     val mediaUrl: String? = null,
-    val status: MessageStatus = MessageStatus.READ
+    val status: MessageStatus = MessageStatus.READ,
+    val reaction: String? = null,
+    val replyToText: String? = null
 )
 
 data class Conversation(
@@ -195,7 +242,9 @@ data class Conversation(
     val unreadCount: Int = 0,
     val isCircleChat: Boolean = false,
     val circleName: String? = null,
-    val isOnline: Boolean = false
+    val isOnline: Boolean = false,
+    val isPinned: Boolean = false,
+    val isMuted: Boolean = false
 )
 
 enum class MajlisStatus {
@@ -215,7 +264,9 @@ data class MajlisRoom(
     val accentHex: Long = 0xFFD4AF37,
     val isJoined: Boolean = false,
     val isHandRaised: Boolean = false,
-    val isReminderSet: Boolean = false
+    val isReminderSet: Boolean = false,
+    val applauseCount: Int = 0,
+    val heartCount: Int = 0
 )
 
 data class Community(
