@@ -123,6 +123,14 @@ data class SavedCollection(
     val postIds: List<String> = emptyList()
 )
 
+data class PrivacyPreferences(
+    val allowMessages: Boolean = true,
+    val allowMentions: Boolean = true,
+    val showActivityStatus: Boolean = true,
+    val sensitiveContentFilter: Boolean = true,
+    val hiddenWords: List<String> = listOf("spam", "spoiler")
+)
+
 data class EchoNote(
     val id: String,
     val author: User,
