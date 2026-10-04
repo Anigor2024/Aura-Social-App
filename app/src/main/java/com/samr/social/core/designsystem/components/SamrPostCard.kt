@@ -64,9 +64,11 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.samr.social.R
+import com.samr.social.core.model.MediaKind
 import com.samr.social.core.model.Post
 import com.samr.social.core.model.PostLifetime
 import com.samr.social.core.util.FormatUtils
+import com.samr.social.core.util.MediaDownloadUtils
 import com.samr.social.ui.theme.SamrChampagne
 import com.samr.social.ui.theme.SamrRose
 
@@ -90,11 +92,13 @@ fun SamrPostCard(
     onMuteCreatorClick: () -> Unit = {},
     onReportClick: () -> Unit = {},
     onHideClick: () -> Unit = {},
+    onRemixClick: () -> Unit = {},
     compactMode: Boolean = false,
     autoplayMedia: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
+    val context = LocalContext.current
     var showMenu by remember { mutableStateOf(false) }
     val isArabic = LocalLayoutDirection.current == LayoutDirection.Rtl
 
@@ -296,6 +300,52 @@ fun SamrPostCard(
                                     onShareClick()
                                 }
                             )
+                            if (post.mediaAssets.isNotEmpty() || post.mediaUrls.isNotEmpty()) {
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            if (post.allowDownloads) stringResource(R.string.download_media)
+                                            else stringResource(R.string.downloads_disabled)
+                                        )
+                                    },
+                                    enabled = post.allowDownloads,
+                                    onClick = {
+                                        showMenu = false
+                                        if (post.mediaAssets.isNotEmpty()) {
+                                            post.mediaAssets.forEach { asset ->
+                                                MediaDownloadUtils.saveToDownloads(
+                                                    context = context,
+                                                    uriString = asset.uri,
+                                                    kind = asset.kind,
+                                                    title = asset.title
+                                                )
+                                            }
+                                        } else {
+                                            post.mediaUrls.forEachIndexed { index, url ->
+                                                MediaDownloadUtils.saveToDownloads(
+                                                    context = context,
+                                                    uriString = url,
+                                                    kind = MediaKind.IMAGE,
+                                                    title = post.author.username + "_media_" + index
+                                                )
+                                            }
+                                        }
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            if (post.allowRemix) stringResource(R.string.remix_media)
+                                            else stringResource(R.string.remix_disabled)
+                                        )
+                                    },
+                                    enabled = post.allowRemix,
+                                    onClick = {
+                                        showMenu = false
+                                        onRemixClick()
+                                    }
+                                )
+                            }
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.hide_post)) },
                                 onClick = {
@@ -755,6 +805,7 @@ fun AuraPostCard(
     onMuteCreatorClick: () -> Unit = {},
     onReportClick: () -> Unit = {},
     onHideClick: () -> Unit = {},
+    onRemixClick: () -> Unit = {},
     compactMode: Boolean = false,
     autoplayMedia: Boolean = false,
     modifier: Modifier = Modifier
@@ -777,6 +828,7 @@ fun AuraPostCard(
     onMuteCreatorClick = onMuteCreatorClick,
     onReportClick = onReportClick,
     onHideClick = onHideClick,
+    onRemixClick = onRemixClick,
     compactMode = compactMode,
     autoplayMedia = autoplayMedia,
     modifier = modifier
