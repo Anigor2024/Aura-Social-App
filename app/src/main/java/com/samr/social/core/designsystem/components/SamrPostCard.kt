@@ -36,6 +36,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -83,6 +84,7 @@ fun SamrPostCard(
     onDeleteClick: () -> Unit = {},
     onPinClick: () -> Unit = {},
     onResonanceClick: () -> Unit = {},
+    onPollVote: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
@@ -357,6 +359,93 @@ fun SamrPostCard(
             }
         }
 
+        if (post.poll != null) {
+            Spacer(modifier = Modifier.height(14.dp))
+            val poll = post.poll
+            val totalVotes = poll.totalVotes.coerceAtLeast(1)
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.58f))
+                    .border(
+                        1.dp,
+                        MaterialTheme.colorScheme.outline.copy(alpha = 0.28f),
+                        RoundedCornerShape(18.dp)
+                    )
+                    .padding(14.dp)
+            ) {
+                Text(
+                    text = poll.question,
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+
+                poll.options.forEach { option ->
+                    val selected = poll.selectedOptionId == option.id
+                    val percentage = option.votes.toFloat() / totalVotes.toFloat()
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 5.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(
+                                if (selected) SamrChampagne.copy(alpha = 0.13f)
+                                else MaterialTheme.colorScheme.surface.copy(alpha = 0.72f)
+                            )
+                            .clickable(enabled = !poll.isClosed) {
+                                view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                                onPollVote(option.id)
+                            }
+                            .padding(horizontal = 12.dp, vertical = 10.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = option.text,
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+                                ),
+                                color = if (selected) SamrChampagne else MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.weight(1f)
+                            )
+                            if (poll.selectedOptionId != null) {
+                                Text(
+                                    text = "${(percentage * 100).toInt()}%",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        if (poll.selectedOptionId != null) {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            LinearProgressIndicator(
+                                progress = { percentage.coerceIn(0f, 1f) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(4.dp)
+                                    .clip(CircleShape),
+                                color = if (selected) SamrChampagne else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
+                                trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.18f)
+                            )
+                        }
+                    }
+                }
+
+                Text(
+                    text = stringResource(R.string.poll_votes_count, poll.totalVotes),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 6.dp)
+                )
+            }
+        }
+
         // Attached Active Discussion Room Indicator
         if (post.discussionRoomTopic != null) {
             Spacer(modifier = Modifier.height(12.dp))
@@ -592,6 +681,7 @@ fun AuraPostCard(
     onDeleteClick: () -> Unit = {},
     onPinClick: () -> Unit = {},
     onResonanceClick: () -> Unit = {},
+    onPollVote: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) = SamrPostCard(
     post = post,
@@ -608,5 +698,6 @@ fun AuraPostCard(
     onDeleteClick = onDeleteClick,
     onPinClick = onPinClick,
     onResonanceClick = onResonanceClick,
+    onPollVote = onPollVote,
     modifier = modifier
 )
