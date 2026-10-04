@@ -69,8 +69,11 @@ import com.samr.social.core.designsystem.components.AuraEmptyState
 import com.samr.social.core.designsystem.components.AuraPostCard
 import com.samr.social.core.designsystem.components.AuraPrimaryButton
 import com.samr.social.core.designsystem.components.AuraSecondaryButton
+import com.samr.social.core.designsystem.components.SamrMediaAssetPreview
 import com.samr.social.core.model.CatchUpSummary
 import com.samr.social.core.model.EchoNote
+import com.samr.social.core.model.MediaAsset
+import com.samr.social.core.model.MediaOrigin
 import com.samr.social.core.model.MoodType
 import com.samr.social.core.model.Post
 import com.samr.social.core.model.Story
@@ -708,17 +711,17 @@ private fun StoryViewerContent(
         }
 
         Spacer(modifier = Modifier.height(12.dp))
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(story.mediaUrl)
-                .crossfade(true)
-                .build(),
-            contentDescription = stringResource(R.string.story_viewer),
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(430.dp)
-                .clip(RoundedCornerShape(24.dp))
+        SamrMediaAssetPreview(
+            asset = MediaAsset(
+                id = "story_media_${story.id}",
+                uri = story.mediaUrl,
+                kind = story.mediaKind,
+                origin = MediaOrigin.IMPORTED,
+                title = story.caption.ifBlank { story.author.displayName }
+            ),
+            height = 430.dp,
+            autoplay = story.mediaKind == com.samr.social.core.model.MediaKind.VIDEO,
+            modifier = Modifier.fillMaxWidth()
         )
         if (story.caption.isNotBlank()) {
             Text(
