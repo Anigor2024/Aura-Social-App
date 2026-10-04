@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Link
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,6 +41,7 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -86,6 +88,8 @@ fun ProfileScreen(
 
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     var showEditSheet by remember { mutableStateOf(false) }
+    var editingPostId by remember { mutableStateOf<String?>(null) }
+    var deletingPostId by remember { mutableStateOf<String?>(null) }
 
     // User's own posts and bookmarked posts
     val userPosts = remember(posts, currentUser.id) {
@@ -355,7 +359,11 @@ fun ProfileScreen(
                     onBookmarkClick = { repository.toggleBookmark(post.id) },
                     onRepostClick = { repository.toggleRepost(post.id) },
                     onShareClick = { },
-                    onAuthorClick = { }
+                    onAuthorClick = { },
+                    isOwner = post.author.id == currentUser.id,
+                    onEditClick = { editingPostId = post.id },
+                    onDeleteClick = { deletingPostId = post.id },
+                    onPinClick = { repository.togglePinPost(post.id) }
                 )
             }
         }
@@ -369,7 +377,10 @@ fun ProfileScreen(
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ) {
             var updatedName by remember { mutableStateOf(currentUser.displayName) }
+            var updatedUsername by remember { mutableStateOf(currentUser.username) }
             var updatedBio by remember { mutableStateOf(currentUser.bio) }
+            var updatedLocation by remember { mutableStateOf(currentUser.location) }
+            var updatedAvatar by remember { mutableStateOf(currentUser.avatarUrl) }
 
             Column(
                 modifier = Modifier
@@ -389,25 +400,116 @@ fun ProfileScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp)
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(10.dp))
+                OutlinedTextField(
+                    value = updatedUsername,
+                    onValueChange = { updatedUsername = it },
+                    label = { Text(stringResource(R.string.username_label)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp)
+                )
+                Spacer(modifier = Modifier.height(10.dp))
                 OutlinedTextField(
                     value = updatedBio,
                     onValueChange = { updatedBio = it },
-                    label = { Text("Bio") },
+                    label = { Text(stringResource(R.string.bio)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
                     maxLines = 4
                 )
+                Spacer(modifier = Modifier.height(10.dp))
+                OutlinedTextField(
+                    value = updatedLocation,
+                    onValueChange = { updatedLocation = it },
+                    label = { Text(stringResource(R.string.location_label)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp)
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                OutlinedTextField(
+                    value = updatedAvatar,
+                    onValueChange = { updatedAvatar = it },
+                    label = { Text(stringResource(R.string.avatar_url_label)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp)
+                )
                 Spacer(modifier = Modifier.height(20.dp))
                 AuraPrimaryButton(
-                    text = "Save Changes",
+                    text = stringResource(R.string.save_changes),
                     onClick = {
+                        repository.updateProfile(
+                            displayName = updatedName,
+                            username = updatedUsername,
+                            bio = updatedBio,
+                            location = updatedLocation,
+                            avatarUrl = updatedAvatar
+                        )
                         showEditSheet = false
                     },
+                    enabled = updatedName.isNotBlank() && updatedUsername.isNotBlank(),
                     modifier = Modifier.fillMaxWidth()
                 )
+                Spacer(modifier = Modifier.height(28.dp))
             }
         }
+    }
+
+    editingPostId?.let { postId ->
+        val post = posts.firstOrNull { it.id == postId }
+        if (post != null) {
+            var editedText by remember(postId) { mutableStateOf(post.text) }
+            AlertDialog(
+                onDismissRequest = { editingPostId = null },
+                title = { Text(stringResource(R.string.edit_post)) },
+                text = {
+                    OutlinedTextField(
+                        value = editedText,
+                        onValueChange = { editedText = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 4
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            repository.editPost(postId, editedText)
+                            editingPostId = null
+                        },
+                        enabled = editedText.isNotBlank()
+                    ) {
+                        Text(stringResource(R.string.save_changes))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { editingPostId = null }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                }
+            )
+        }
+    }
+
+    deletingPostId?.let { postId ->
+        AlertDialog(
+            onDismissRequest = { deletingPostId = null },
+            title = { Text(stringResource(R.string.delete_post)) },
+            text = { Text(stringResource(R.string.delete_account_dialog_desc)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        repository.deletePost(postId)
+                        deletingPostId = null
+                    }
+                ) {
+                    Text(stringResource(R.string.delete_action), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { deletingPostId = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 }
 
