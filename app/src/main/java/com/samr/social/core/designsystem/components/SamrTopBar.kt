@@ -23,7 +23,10 @@ import androidx.compose.material.icons.automirrored.outlined.VolumeMute
 import androidx.compose.material.icons.automirrored.outlined.VolumeUp
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -60,6 +63,8 @@ fun SamrTopBar(
     onToggleQuietMode: () -> Unit,
     onCatchUpClick: () -> Unit,
     onSearchClick: () -> Unit,
+    onNotificationsClick: () -> Unit = {},
+    unreadNotificationsCount: Int = 0,
     modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
@@ -193,6 +198,34 @@ fun SamrTopBar(
                     )
                 }
 
+                BadgedBox(
+                    badge = {
+                        if (unreadNotificationsCount > 0) {
+                            Badge(containerColor = SamrChampagne) {
+                                Text(
+                                    text = if (unreadNotificationsCount > 9) "9+" else unreadNotificationsCount.toString(),
+                                    color = Color.Black,
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            }
+                        }
+                    }
+                ) {
+                    IconButton(
+                        onClick = {
+                            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                            onNotificationsClick()
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Notifications,
+                            contentDescription = stringResource(R.string.notifications_action),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
+
                 // Search Shortcut
                 IconButton(
                     onClick = {
@@ -239,6 +272,8 @@ fun AuraTopBar(
     onToggleQuietMode: () -> Unit,
     onCatchUpClick: () -> Unit,
     onSearchClick: () -> Unit,
+    onNotificationsClick: () -> Unit = {},
+    unreadNotificationsCount: Int = 0,
     modifier: Modifier = Modifier
 ) = SamrTopBar(
     currentLayer = currentLayer,
@@ -247,6 +282,8 @@ fun AuraTopBar(
     onToggleQuietMode = onToggleQuietMode,
     onCatchUpClick = onCatchUpClick,
     onSearchClick = onSearchClick,
+    onNotificationsClick = onNotificationsClick,
+    unreadNotificationsCount = unreadNotificationsCount,
     modifier = modifier
 )
 
