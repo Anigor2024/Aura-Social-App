@@ -39,6 +39,7 @@ import com.samr.social.features.discover.DiscoverScreen
 import com.samr.social.features.home.HomeScreen
 import com.samr.social.features.home.SmartCatchUpContent
 import com.samr.social.features.language.LanguageSelectScreen
+import com.samr.social.features.majlis.MajlisScreen
 import com.samr.social.features.profile.ProfileScreen
 import com.samr.social.features.settings.SettingsScreen
 import com.samr.social.features.studio.CreatorStudioScreen
@@ -87,6 +88,7 @@ fun SamrApp(
     var isViewingSettings by remember { mutableStateOf(false) }
     var isViewingActivity by remember { mutableStateOf(false) }
     var isViewingStudio by remember { mutableStateOf(false) }
+    var isViewingMajlis by remember { mutableStateOf(false) }
     var showCatchUpDialog by remember { mutableStateOf(false) }
 
     val activeLayer by repository.activeLayer.collectAsState()
@@ -127,6 +129,14 @@ fun SamrApp(
             CreatorStudioScreen(
                 repository = repository,
                 onBack = { isViewingStudio = false }
+            )
+        }
+
+        isViewingMajlis -> {
+            BackHandler { isViewingMajlis = false }
+            MajlisScreen(
+                repository = repository,
+                onBack = { isViewingMajlis = false }
             )
         }
 
@@ -231,7 +241,8 @@ fun SamrApp(
                                         currentTab = SamrNavigationTab.DISCOVER
                                     },
                                     onCreatePost = { isCreatingPost = true },
-                                    onOpenStudio = { isViewingStudio = true }
+                                    onOpenStudio = { isViewingStudio = true },
+                                    onOpenMajlis = { isViewingMajlis = true }
                                 )
 
                                 SamrNavigationTab.DISCOVER -> DiscoverScreen(
