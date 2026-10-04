@@ -79,7 +79,7 @@ fun SamrBottomBar(
             )
             .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
             .navigationBarsPadding()
-            .height(64.dp),
+            .height(72.dp),
         contentAlignment = Alignment.Center
     ) {
         Row(
@@ -215,7 +215,12 @@ private fun BottomNavItem(
                 indication = null,
                 onClick = onClick
             )
-            .padding(vertical = 4.dp, horizontal = 8.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(
+                if (selected) SamrChampagne.copy(alpha = 0.11f)
+                else MaterialTheme.colorScheme.surface.copy(alpha = 0f)
+            )
+            .padding(vertical = 6.dp, horizontal = 10.dp)
     ) {
         if (badgeCount > 0) {
             BadgedBox(
@@ -249,12 +254,11 @@ private fun BottomNavItem(
         }
 
         if (selected) {
-            Box(
-                modifier = Modifier
-                    .padding(top = 3.dp)
-                    .size(4.dp)
-                    .clip(CircleShape)
-                    .background(SamrChampagne)
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = SamrChampagne,
+                modifier = Modifier.padding(top = 2.dp)
             )
         }
     }
