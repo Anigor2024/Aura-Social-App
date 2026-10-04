@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "Aura"
+rootProject.name = "SAMR"
 
 include(":app")

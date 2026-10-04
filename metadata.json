@@ -1,6 +1,6 @@
 {
-  "name": "Aura",
-  "description": "A modern, luxury social network featuring private Circles, Social Layers, Mood Feed, Quiet Mode, Stories, Clips, and high-fidelity messaging.",
+  "name": "SAMR",
+  "description": "A modern Arab-native, globally accessible social platform rooted in meaningful dialogue, private Circles, Social Layers, Quiet Feed, and authentic community gatherings.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

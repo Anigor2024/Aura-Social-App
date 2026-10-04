@@ -1,38 +1,57 @@
 <resources>
-    <string name="app_name">Aura</string>
-    <string name="app_tagline">Where connection feels authentic</string>
+    <string name="app_name">SAMR</string>
+    <string name="brand_name">SAMR</string>
+    <string name="brand_name_arabic">سَمَر</string>
+    <string name="app_tagline">Where meaningful conversations unfold</string>
+
+    <!-- Language Selection -->
+    <string name="select_language_title">Select Language / اختر اللغة</string>
+    <string name="select_language_subtitle">Choose your preferred language to experience SAMR\nاختر لغتك المفضلة لتجربة سَمَر</string>
+    <string name="language_arabic">العربية</string>
+    <string name="language_arabic_native">العربية (Arabic)</string>
+    <string name="language_english">English</string>
+    <string name="language_english_native">English (الإنجليزية)</string>
+    <string name="continue_action">Continue</string>
+    <string name="change_language">Change Language</string>
 
     <!-- Onboarding -->
-    <string name="onboarding_title_1">Curated Circles, Real Privacy</string>
-    <string name="onboarding_desc_1">Share moments exclusively with specific Circles without revealing member lists.</string>
-    <string name="onboarding_title_2">Switch Contexts with Social Layers</string>
-    <string name="onboarding_desc_2">Transition seamlessly between Personal, Professional, Creative, and Tech spaces within one profile.</string>
+    <string name="onboarding_title_1">Curated Circles, True Privacy</string>
+    <string name="onboarding_desc_1">Share conversations and moments exclusively within private circles without revealing member lists.</string>
+    <string name="onboarding_title_2">Contextual Social Layers</string>
+    <string name="onboarding_desc_2">Switch seamlessly between Personal, Professional, Creative, and Tech spaces within one profile.</string>
     <string name="onboarding_title_3">Mindful Feed &amp; Smart Catch-Up</string>
-    <string name="onboarding_desc_3">Escape doom-scrolling with Quiet Feed and concise AI-powered Catch-Up summaries.</string>
+    <string name="onboarding_desc_3">Experience social gathering at your pace with Quiet Feed and concise Catch-Up summaries.</string>
     <string name="get_started">Get Started</string>
     <string name="already_have_account">Already have an account? Sign In</string>
     <string name="sign_in">Sign In</string>
     <string name="create_account">Create Account</string>
     <string name="continue_with_google">Continue with Google</string>
-    <string name="or_continue_with">or continue with email</string>
+    <string name="or_continue_with">or continue with phone / email</string>
+    <string name="phone_or_email_label">Phone Number or Email</string>
+    <string name="phone_number">Phone Number</string>
+    <string name="country_code_saudi">Saudi Arabia (+966)</string>
+    <string name="country_code_uae">United Arab Emirates (+971)</string>
+    <string name="country_code_kuwait">Kuwait (+965)</string>
+    <string name="country_code_other">Other Countries</string>
     <string name="email_label">Email Address</string>
     <string name="password_label">Password</string>
     <string name="forgot_password">Forgot password?</string>
     <string name="full_name">Full Name</string>
     <string name="username">Username</string>
-    <string name="bio_hint">Tell the world your story...</string>
-    <string name="interests_title">Select your interests</string>
-    <string name="interests_desc">We personalize your initial feed and community recommendations.</string>
+    <string name="bio_hint">Tell your story, interests, and craft...</string>
+    <string name="interests_title">What inspires your curiosity?</string>
+    <string name="interests_desc">Select topics to tailor your initial SAMR gatherings and communities.</string>
+    <string name="enter_samr">Enter SAMR</string>
 
     <!-- Navigation -->
     <string name="nav_home">Home</string>
     <string name="nav_discover">Discover</string>
     <string name="nav_create">Create</string>
     <string name="nav_clips">Clips</string>
-    <string name="nav_inbox">Inbox</string>
+    <string name="nav_inbox">Messages</string>
     <string name="nav_profile">Profile</string>
 
-    <!-- Feed Tabs & Exclusive Features -->
+    <!-- Feeds & Layers -->
     <string name="feed_for_you">For You</string>
     <string name="feed_following">Following</string>
     <string name="feed_trending">Trending</string>
@@ -42,31 +61,35 @@
     <string name="social_layer_creative">Creative</string>
     <string name="social_layer_tech">Tech &amp; Gaming</string>
     <string name="quiet_feed_mode">Quiet Feed</string>
-    <string name="quiet_feed_active_hint">Metrics hidden for a mindful experience</string>
+    <string name="quiet_feed_active_hint">Vanity metrics hidden for a mindful gathering experience</string>
     <string name="mood_filter">Mood</string>
     <string name="mood_relax">Relax</string>
     <string name="mood_discover">Discover</string>
     <string name="mood_learn">Learn</string>
-    <string name="mood_laugh">Laugh</string>
-    <string name="mood_connect">Connect</string>
+    <string name="mood_laugh">Humor</string>
+    <string name="mood_connect">Gather</string>
     <string name="mood_focus">Focus</string>
     <string name="smart_catch_up">Smart Catch-Up</string>
-    <string name="catch_up_title">While you were away</string>
-    <string name="catch_up_subtitle">A curated snapshot of key interactions and trending conversations.</string>
-    <string name="catch_up_key_posts">Key Discussions</string>
+    <string name="catch_up_title">While You Were Away</string>
+    <string name="catch_up_subtitle">A curated snapshot of meaningful dialogues and circle updates.</string>
+    <string name="catch_up_key_posts">Featured Discussions</string>
     <string name="catch_up_missed_circles">Circle Updates</string>
     <string name="catch_up_direct_messages">Direct Messages</string>
+    <string name="review_catch_up">Review Summary</string>
 
-    <!-- Post Component & Actions -->
+    <!-- Circles -->
+    <string name="circle_inner">Inner Circle</string>
+    <string name="circle_design">Design Studio</string>
+    <string name="circle_tech">Tech Syndicate</string>
+    <string name="circle_family">Family &amp; Friends</string>
+
+    <!-- Post Actions -->
     <string name="like">Like</string>
     <string name="comment">Comment</string>
     <string name="repost">Repost</string>
     <string name="share">Share</string>
-    <string name="bookmark">Bookmark</string>
+    <string name="bookmark">Save</string>
     <string name="bookmarked">Saved</string>
-    <string name="comments_count">%1$d Comments</string>
-    <string name="likes_count">%1$d Likes</string>
-    <string name="reposts_count">%1$d Reposts</string>
     <string name="collaborator_with">with</string>
     <string name="time_limited_badge">Expires in %1$s</string>
     <string name="expires_24h">24h</string>
@@ -75,8 +98,9 @@
     <string name="circle_badge">Circle: %1$s</string>
     <string name="follow">Follow</string>
     <string name="following">Following</string>
-    <string name="view_discussion_room">Join Discussion Room</string>
-    <string name="post_options">Post options</string>
+    <string name="view_discussion_room">Join Conversation Room</string>
+    <string name="live_badge">Live</string>
+    <string name="post_options">Post Options</string>
     <string name="not_interested">Not Interested</string>
     <string name="mute_user">Mute %1$s</string>
     <string name="block_user">Block %1$s</string>
@@ -85,60 +109,55 @@
     <string name="link_copied">Link copied to clipboard</string>
 
     <!-- Create Post & Editor -->
-    <string name="new_post">Create Post</string>
+    <string name="new_post">New Post</string>
     <string name="publish">Publish</string>
-    <string name="post_placeholder">What\'s shaping your world?</string>
+    <string name="post_placeholder">Share a thought, story, or reflection...</string>
     <string name="audience_label">Audience</string>
     <string name="audience_public">Public</string>
     <string name="audience_followers">Followers Only</string>
-    <string name="audience_circle">Select Circle</string>
-    <string name="post_lifetime">Post Lifetime</string>
+    <string name="post_lifetime">Post Duration</string>
     <string name="lifetime_permanent">Permanent</string>
-    <string name="collaborative_post">Collaborative Post</string>
-    <string name="add_collaborator">Invite Collaborator</string>
-    <string name="allow_comments">Allow Comments</string>
-    <string name="hide_metrics">Hide Like Counts</string>
     <string name="filter_original">Original</string>
     <string name="filter_warm">Amber</string>
     <string name="filter_cool">Nordic</string>
-    <string name="filter_noir">Obsidian</string>
+    <string name="filter_noir">Graphite</string>
     <string name="filter_vibrant">Vivid</string>
+    <string name="remove_attachment">Remove Attachment</string>
 
-    <!-- Stories -->
+    <!-- Stories & Clips -->
     <string name="your_story">Your Story</string>
-    <string name="story_reply_placeholder">Send a message...</string>
-    <string name="story_viewers">Viewers</string>
-
-    <!-- Clips -->
-    <string name="clips_title">Aura Clips</string>
+    <string name="story_reply_placeholder">Reply to story...</string>
+    <string name="story_viewers">Views</string>
+    <string name="clips_title">SAMR Clips</string>
     <string name="original_audio">Original Audio</string>
     <string name="double_tap_to_heart">Double tap to like</string>
 
     <!-- Discover & Communities -->
-    <string name="search_placeholder">Search people, topics, communities...</string>
-    <string name="trending_topics">Trending on Aura</string>
-    <string name="suggested_creators">Suggested Creators</string>
+    <string name="search_placeholder">Search creators, topics, gatherings...</string>
+    <string name="trending_topics">Trending on SAMR</string>
     <string name="featured_communities">Active Communities</string>
     <string name="join_community">Join</string>
     <string name="joined_community">Joined</string>
     <string name="members_count">%1$s members</string>
 
-    <!-- Chat & Messaging -->
+    <!-- Chat -->
     <string name="messages_title">Messages</string>
     <string name="direct_chats">Direct</string>
     <string name="circles_chats">Circles</string>
     <string name="type_message_hint">Type a message...</string>
     <string name="voice_message">Voice Message</string>
     <string name="recording">Recording %1$s</string>
+    <string name="send_voice">Send Voice Note</string>
+    <string name="send_message">Send</string>
     <string name="online_now">Active now</string>
     <string name="last_seen">Active %1$s</string>
-    <string name="typing_indicator">%1$s is typing...</string>
     <string name="status_delivered">Delivered</string>
     <string name="status_read">Read</string>
 
     <!-- Profile -->
     <string name="edit_profile">Edit Profile</string>
     <string name="share_profile">Share Profile</string>
+    <string name="save_changes">Save Changes</string>
     <string name="posts_tab">Posts</string>
     <string name="media_tab">Media</string>
     <string name="clips_tab">Clips</string>
@@ -146,33 +165,38 @@
     <string name="followers_stat">Followers</string>
     <string name="following_stat">Following</string>
     <string name="posts_stat">Posts</string>
-    <string name="identity_verified">Verified Identity</string>
+    <string name="identity_verified">Verified Profile</string>
 
-    <!-- Settings & Privacy -->
+    <!-- Settings -->
     <string name="settings_title">Settings &amp; Privacy</string>
+    <string name="mindful_experience">Mindful Experience</string>
     <string name="account_settings">Account</string>
     <string name="privacy_safety">Privacy &amp; Safety</string>
     <string name="security_center">Security Center</string>
     <string name="notifications_settings">Notifications</string>
+    <string name="system_localization">System &amp; Localization</string>
     <string name="appearance_settings">Appearance &amp; Theme</string>
     <string name="language_settings">Language</string>
     <string name="data_saver">Data Saver Mode</string>
-    <string name="data_saver_desc">Reduce image quality and disable autoplay on mobile data</string>
+    <string name="data_saver_desc">Reduce media resolution and pause autoplay on mobile networks</string>
     <string name="theme_system">System Default</string>
-    <string name="theme_light">Light Luxury</string>
-    <string name="theme_dark">Dark Obsidian</string>
-    <string name="logout">Log Out</string>
+    <string name="theme_light">Alabaster Light</string>
+    <string name="theme_dark">Obsidian Dark</string>
+    <string name="logout">Sign Out</string>
     <string name="delete_account">Delete Account</string>
 
-    <!-- States & Feedback -->
+    <!-- States & Accessibility -->
     <string name="loading">Loading...</string>
     <string name="empty_feed_title">Your Feed is Quiet</string>
-    <string name="empty_feed_desc">Explore trending creators and topics to shape your personalized Aura.</string>
+    <string name="empty_feed_desc">Discover creators and topics across SAMR to enrich your personal gathering.</string>
     <string name="empty_bookmarks_title">No Saved Posts</string>
-    <string name="empty_bookmarks_desc">Save inspiring posts to revisit them anytime in your private archive.</string>
+    <string name="empty_bookmarks_desc">Save inspiring conversations to revisit them in your private archive.</string>
     <string name="empty_messages_title">Start a Conversation</string>
-    <string name="empty_messages_desc">Send messages, voice notes, and media with end-to-end privacy.</string>
-    <string name="offline_banner">Working in offline mode. Changes will sync when reconnected.</string>
+    <string name="empty_messages_desc">Connect directly with creators or start a circle discussion.</string>
+    <string name="offline_banner">Working offline. Changes will sync when connected.</string>
     <string name="retry">Try Again</string>
     <string name="action_success">Completed successfully</string>
+    <string name="close_dialog">Close</string>
+    <string name="back_button">Back</string>
+    <string name="search_action">Search</string>
 </resources>

@@ -1,28 +1,47 @@
 <resources>
-    <string name="app_name">أورا</string>
-    <string name="app_tagline">حيث التواصل يعبر عن هويتك الحقيقية</string>
+    <string name="app_name">سَمَر</string>
+    <string name="brand_name">سَمَر</string>
+    <string name="brand_name_arabic">سَمَر</string>
+    <string name="app_tagline">حيث تزهر الحوارات وتكتمل اللقاءات</string>
+
+    <!-- Language Selection -->
+    <string name="select_language_title">اختر لغة التطبيق / Select Language</string>
+    <string name="select_language_subtitle">اختر لغتك المفضلة لتجربة سَمَر\nChoose your preferred language to experience SAMR</string>
+    <string name="language_arabic">العربية</string>
+    <string name="language_arabic_native">العربية (Arabic)</string>
+    <string name="language_english">English</string>
+    <string name="language_english_native">English (الإنجليزية)</string>
+    <string name="continue_action">متابعة</string>
+    <string name="change_language">تغيير اللغة</string>
 
     <!-- Onboarding -->
     <string name="onboarding_title_1">دوائر خاصة بخصوصية مطلقة</string>
-    <string name="onboarding_desc_1">شارك لحظاتك حصرياً مع دوائرك الخاصة دون كشف قائمة الأعضاء لأي شخص.</string>
-    <string name="onboarding_title_2">تنقل بسلاسة عبر الطبقات الاجتماعية</string>
-    <string name="onboarding_desc_2">بدّل بين السياق الشخصي، المهني، الإبداعي، والتقني بحساب واحد وبكل انسيابية.</string>
-    <string name="onboarding_title_3">خلاصة هادئة وملخص ذكي</string>
-    <string name="onboarding_desc_3">تخلص من التمرير اللانهائي مع النمط الهادئ وملخص الاستدراك الذكي لما فاتك.</string>
-    <string name="get_started">ابدأ الآن</string>
+    <string name="onboarding_desc_1">شارك أحاديثك ولحظاتك حصرياً مع دوائرك الخاصة دون كشف قائمة الأعضاء لأي شخص.</string>
+    <string name="onboarding_title_2">طبقات اجتماعية مرنة</string>
+    <string name="onboarding_desc_2">بدّل بانسيابية بين مساحاتك الشخصية، المهنية، الإبداعية، والتقنية بحساب واحد.</string>
+    <string name="onboarding_title_3">خلاصة هادئة وملخص وافٍ</string>
+    <string name="onboarding_desc_3">عِش تجربة تواصل واعية بعيداً عن صخب الأرقام مع النمط الهادئ واستدراك ما فاتك بذكاء.</string>
+    <string name="get_started">ابدأ سَمَر</string>
     <string name="already_have_account">لديك حساب بالفعل؟ تسجيل الدخول</string>
     <string name="sign_in">تسجيل الدخول</string>
     <string name="create_account">إنشاء حساب جديد</string>
     <string name="continue_with_google">المتابعة باستخدام Google</string>
-    <string name="or_continue_with">أو المتابعة عبر البريد الإلكتروني</string>
+    <string name="or_continue_with">أو المتابعة برقم الهاتف / البريد</string>
+    <string name="phone_or_email_label">رقم الهاتف أو البريد الإلكتروني</string>
+    <string name="phone_number">رقم الهاتف</string>
+    <string name="country_code_saudi">المملكة العربية السعودية (+966)</string>
+    <string name="country_code_uae">الإمارات العربية المتحدة (+971)</string>
+    <string name="country_code_kuwait">الكويت (+965)</string>
+    <string name="country_code_other">دول أخرى</string>
     <string name="email_label">البريد الإلكتروني</string>
     <string name="password_label">كلمة المرور</string>
     <string name="forgot_password">نسيت كلمة المرور؟</string>
     <string name="full_name">الاسم الكامل</string>
     <string name="username">اسم المستخدم</string>
-    <string name="bio_hint">شارك العالم نبذة عنك وعن اهتماماتك...</string>
-    <string name="interests_title">حدد اهتماماتك</string>
-    <string name="interests_desc">نخصص خلاصتك الأولى وتوصيات المجتمعات بناءً على شغفك.</string>
+    <string name="bio_hint">شارك مجتمع سَمَر اهتماماتك وشغفك...</string>
+    <string name="interests_title">ما هي اهتماماتك؟</string>
+    <string name="interests_desc">اختر المواضيع التي تفضلها لنقترح لك جلسات سَمَر ومجتمعات تناسب ذائقتك.</string>
+    <string name="enter_samr">دخول سَمَر</string>
 
     <!-- Navigation -->
     <string name="nav_home">الرئيسية</string>
@@ -32,7 +51,7 @@
     <string name="nav_inbox">الرسائل</string>
     <string name="nav_profile">الملف الشخصي</string>
 
-    <!-- Feed Tabs & Exclusive Features -->
+    <!-- Feeds & Layers -->
     <string name="feed_for_you">لك</string>
     <string name="feed_following">المتابَعون</string>
     <string name="feed_trending">الشائع</string>
@@ -42,7 +61,7 @@
     <string name="social_layer_creative">إبداعي</string>
     <string name="social_layer_tech">تقنية وألعاب</string>
     <string name="quiet_feed_mode">النمط الهادئ</string>
-    <string name="quiet_feed_active_hint">تم إخفاء مقاييس التفاعل لتجربة قراءة مريحة وواعية</string>
+    <string name="quiet_feed_active_hint">تم إخفاء مقاييس التفاعل لتجربة قراءة هادئة وواعية</string>
     <string name="mood_filter">المزاج</string>
     <string name="mood_relax">استرخاء</string>
     <string name="mood_discover">اكتشاف</string>
@@ -52,21 +71,25 @@
     <string name="mood_focus">تركيز</string>
     <string name="smart_catch_up">الاستدراك الذكي</string>
     <string name="catch_up_title">أثناء غيابك</string>
-    <string name="catch_up_subtitle">ملخص منتقى لأهم النقاشات والتفاعلات والتحديثات في دوائرك.</string>
-    <string name="catch_up_key_posts">أهم النقاشات</string>
+    <string name="catch_up_subtitle">ملخص منتقى لأهم النقاشات والمنشورات وتحديثات الدوائر.</string>
+    <string name="catch_up_key_posts">أبرز النقاشات</string>
     <string name="catch_up_missed_circles">تحديثات الدوائر</string>
     <string name="catch_up_direct_messages">الرسائل الخاصة</string>
+    <string name="review_catch_up">استعراض الملخص</string>
 
-    <!-- Post Component & Actions -->
+    <!-- Circles -->
+    <string name="circle_inner">المقرّبون</string>
+    <string name="circle_design">فريق التصميم</string>
+    <string name="circle_tech">مجتمع التقنية</string>
+    <string name="circle_family">العائلة والأصدقاء</string>
+
+    <!-- Post Actions -->
     <string name="like">إعجاب</string>
     <string name="comment">تعليق</string>
     <string name="repost">إعادة نشر</string>
     <string name="share">مشاركة</string>
     <string name="bookmark">حفظ</string>
-    <string name="bookmarked">تم الحفظ</string>
-    <string name="comments_count">%1$d تعليق</string>
-    <string name="likes_count">%1$d إعجاب</string>
-    <string name="reposts_count">%1$d إعادة نشر</string>
+    <string name="bookmarked">محفوظ</string>
     <string name="collaborator_with">بالتعاون مع</string>
     <string name="time_limited_badge">ينتهي خلال %1$s</string>
     <string name="expires_24h">24 ساعة</string>
@@ -75,7 +98,8 @@
     <string name="circle_badge">دائرة: %1$s</string>
     <string name="follow">متابعة</string>
     <string name="following">تتابعه</string>
-    <string name="view_discussion_room">انضم لغرفة النقاش</string>
+    <string name="view_discussion_room">انضم لغرفة الحوار</string>
+    <string name="live_badge">مباشر</string>
     <string name="post_options">خيارات المنشور</string>
     <string name="not_interested">غير مهتم</string>
     <string name="mute_user">كتم منشورات %1$s</string>
@@ -85,94 +109,94 @@
     <string name="link_copied">تم نسخ الرابط إلى الحافظة</string>
 
     <!-- Create Post & Editor -->
-    <string name="new_post">إنشاء منشور</string>
+    <string name="new_post">منشور جديد</string>
     <string name="publish">نشر</string>
-    <string name="post_placeholder">ما الذي يلهمك اليوم؟</string>
+    <string name="post_placeholder">ما الذي تود طرحه في سَمَر اليوم؟</string>
     <string name="audience_label">الجمهور</string>
     <string name="audience_public">عام</string>
     <string name="audience_followers">المتابعون فقط</string>
-    <string name="audience_circle">تحديد دائرة خاصة</string>
-    <string name="post_lifetime">مدة بقاء المنشور</string>
+    <string name="post_lifetime">مدة المنشور</string>
     <string name="lifetime_permanent">دائم</string>
-    <string name="collaborative_post">منشور تشاركي</string>
-    <string name="add_collaborator">دعوة شريك محتوى</string>
-    <string name="allow_comments">السماح بالتعليقات</string>
-    <string name="hide_metrics">إخفاء عدد الإعجابات</string>
     <string name="filter_original">الأصلي</string>
     <string name="filter_warm">عنبر</string>
     <string name="filter_cool">نورديك</string>
-    <string name="filter_noir">أوبسيديان</string>
+    <string name="filter_noir">غرافيت</string>
     <string name="filter_vibrant">نابض</string>
+    <string name="remove_attachment">إزالة المرفق</string>
 
-    <!-- Stories -->
+    <!-- Stories & Clips -->
     <string name="your_story">قصتك</string>
-    <string name="story_reply_placeholder">أرسل رسالة...</string>
+    <string name="story_reply_placeholder">رد على القصة...</string>
     <string name="story_viewers">المشاهدات</string>
-
-    <!-- Clips -->
-    <string name="clips_title">مقاطع أورا</string>
+    <string name="clips_title">مقاطع سَمَر</string>
     <string name="original_audio">الصوت الأصلي</string>
     <string name="double_tap_to_heart">اضغط مرتين للإعجاب</string>
 
     <!-- Discover & Communities -->
-    <string name="search_placeholder">ابحث عن مستخدمين، مواضيع، مجتمعات...</string>
-    <string name="trending_topics">الأكثر رواجاً في أورا</string>
-    <string name="suggested_creators">صناع محتوى مقترحون</string>
+    <string name="search_placeholder">ابحث عن صناع محتوى، مواضيع، مجتمعات...</string>
+    <string name="trending_topics">الأكثر رواجاً في سَمَر</string>
     <string name="featured_communities">مجتمعات نشطة</string>
     <string name="join_community">انضمام</string>
     <string name="joined_community">منضم</string>
     <string name="members_count">%1$s عضو</string>
 
-    <!-- Chat & Messaging -->
-    <string name="messages_title">المحادثات</string>
+    <!-- Chat -->
+    <string name="messages_title">الرسائل</string>
     <string name="direct_chats">مباشرة</string>
     <string name="circles_chats">الدوائر</string>
     <string name="type_message_hint">اكتب رسالة...</string>
     <string name="voice_message">رسالة صوتية</string>
     <string name="recording">جاري التسجيل %1$s</string>
-    <string name="online_now">نشط الآن</string>
+    <string name="send_voice">إرسال التسجيل</string>
+    <string name="send_message">إرسال</string>
+    <string name="online_now">متصل الآن</string>
     <string name="last_seen">نشط منذ %1$s</string>
-    <string name="typing_indicator">%1$s يكتب الآن...</string>
     <string name="status_delivered">تم التسليم</string>
     <string name="status_read">تمت القراءة</string>
 
     <!-- Profile -->
     <string name="edit_profile">تعديل الملف</string>
     <string name="share_profile">مشاركة الملف</string>
+    <string name="save_changes">حفظ التغييرات</string>
     <string name="posts_tab">المنشورات</string>
     <string name="media_tab">الوسائط</string>
     <string name="clips_tab">المقاطع</string>
     <string name="saved_tab">المحفوظات</string>
     <string name="followers_stat">المتابعون</string>
-    <string name="following_stat">تتابعهم</string>
+    <string name="following_stat">المتابَعون</string>
     <string name="posts_stat">المنشورات</string>
-    <string name="identity_verified">هوية موثقة</string>
+    <string name="identity_verified">ملف موثق</string>
 
-    <!-- Settings & Privacy -->
+    <!-- Settings -->
     <string name="settings_title">الإعدادات والخصوصية</string>
+    <string name="mindful_experience">تجربة استخدام واعية</string>
     <string name="account_settings">الحساب</string>
     <string name="privacy_safety">الخصوصية والأمان</string>
     <string name="security_center">مركز الأمان</string>
     <string name="notifications_settings">الإشعارات</string>
+    <string name="system_localization">النظام واللغة</string>
     <string name="appearance_settings">المظهر والسمة</string>
     <string name="language_settings">اللغة</string>
     <string name="data_saver">نمط توفير البيانات</string>
-    <string name="data_saver_desc">تقليل دقة الصور وإيقاف التشغيل التلقائي عند استخدام البيانات</string>
+    <string name="data_saver_desc">تقليل دقة الوسائط وإيقاف التشغيل التلقائي على بيانات الهاتف</string>
     <string name="theme_system">تلقائي حسب النظام</string>
-    <string name="theme_light">مظهر فاتح أنيق</string>
-    <string name="theme_dark">أوبسيديان داكن فخم</string>
+    <string name="theme_light">مظهر ألبستر فاتح</string>
+    <string name="theme_dark">أوبسيديان داكن فاخر</string>
     <string name="logout">تسجيل الخروج</string>
     <string name="delete_account">حذف الحساب نهائياً</string>
 
-    <!-- States & Feedback -->
+    <!-- States & Accessibility -->
     <string name="loading">جاري التحميل...</string>
     <string name="empty_feed_title">خلاصتك هادئة الآن</string>
-    <string name="empty_feed_desc">استكشف صناع المحتوى والمواضيع الملهمة لتشكيل عالمك في أورا.</string>
+    <string name="empty_feed_desc">استكشف صناع المحتوى والمواضيع في سَمَر لتثري جلساتك الحوارية.</string>
     <string name="empty_bookmarks_title">لا توجد عناصر محفوظة</string>
     <string name="empty_bookmarks_desc">احفظ المنشورات الملهمة للرجوع إليها في أي وقت بأرشيفك الخاص.</string>
     <string name="empty_messages_title">ابدأ محادثة جديدة</string>
-    <string name="empty_messages_desc">أرسل رسائل نصية وتسجيلات صوتية ووسائط بأعلى معايير الخصوصية.</string>
-    <string name="offline_banner">تعمل الآن دون اتصال بالإنترنت. ستتم مزامنة التغييرات فور عودة الاتصال.</string>
+    <string name="empty_messages_desc">تواصل مباشرة مع صناع المحتوى أو ابدأ حواراً في دوائرك.</string>
+    <string name="offline_banner">تعمل الآن دون اتصال. ستتم المزامنة فور عودة الشبكة.</string>
     <string name="retry">إعادة المحاولة</string>
     <string name="action_success">تمت العملية بنجاح</string>
+    <string name="close_dialog">إغلاق</string>
+    <string name="back_button">رجوع</string>
+    <string name="search_action">بحث</string>
 </resources>
