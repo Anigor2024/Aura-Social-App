@@ -41,6 +41,7 @@ import com.samr.social.features.home.SmartCatchUpContent
 import com.samr.social.features.language.LanguageSelectScreen
 import com.samr.social.features.profile.ProfileScreen
 import com.samr.social.features.settings.SettingsScreen
+import com.samr.social.features.studio.CreatorStudioScreen
 import com.samr.social.ui.theme.SamrTheme
 
 class MainActivity : AppCompatActivity() {
@@ -85,6 +86,7 @@ fun SamrApp(
     var isCreatingPost by remember { mutableStateOf(false) }
     var isViewingSettings by remember { mutableStateOf(false) }
     var isViewingActivity by remember { mutableStateOf(false) }
+    var isViewingStudio by remember { mutableStateOf(false) }
     var showCatchUpDialog by remember { mutableStateOf(false) }
 
     val activeLayer by repository.activeLayer.collectAsState()
@@ -117,6 +119,14 @@ fun SamrApp(
             ActivityCenterScreen(
                 repository = repository,
                 onBack = { isViewingActivity = false }
+            )
+        }
+
+        isViewingStudio -> {
+            BackHandler { isViewingStudio = false }
+            CreatorStudioScreen(
+                repository = repository,
+                onBack = { isViewingStudio = false }
             )
         }
 
@@ -219,7 +229,9 @@ fun SamrApp(
                                     },
                                     onNavigateToDiscover = {
                                         currentTab = SamrNavigationTab.DISCOVER
-                                    }
+                                    },
+                                    onCreatePost = { isCreatingPost = true },
+                                    onOpenStudio = { isViewingStudio = true }
                                 )
 
                                 SamrNavigationTab.DISCOVER -> DiscoverScreen(
@@ -249,7 +261,8 @@ fun SamrApp(
                                     repository = repository,
                                     onNavigateToSettings = {
                                         isViewingSettings = true
-                                    }
+                                    },
+                                    onOpenStudio = { isViewingStudio = true }
                                 )
                             }
                         }
