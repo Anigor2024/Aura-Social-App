@@ -1,5 +1,6 @@
 package com.samr.social.core.repository
 
+import android.content.Context
 import com.samr.social.core.model.CatchUpSummary
 import com.samr.social.core.model.Clip
 import com.samr.social.core.model.ClipComment
@@ -12,6 +13,7 @@ import com.samr.social.core.model.MajlisRoom
 import com.samr.social.core.model.MajlisStatus
 import com.samr.social.core.model.MediaAsset
 import com.samr.social.core.model.MediaKind
+import com.samr.social.core.model.MediaOrigin
 import com.samr.social.core.model.MessageStatus
 import com.samr.social.core.model.MoodType
 import com.samr.social.core.model.PollOption
@@ -35,8 +37,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.util.UUID
+import org.json.JSONArray
+import org.json.JSONObject
 
-class SamrRepository {
+class SamrRepository(
+    private val appContext: Context? = null
+) {
+    private val mediaPrefs =
+        appContext?.getSharedPreferences("samr_media_library", Context.MODE_PRIVATE)
 
     // Current User Profile (Noura Al-Otaibi - Saudi Product Designer)
     private val _currentUser = MutableStateFlow(
@@ -444,7 +452,7 @@ class SamrRepository {
     )
     val privacyPreferences: StateFlow<PrivacyPreferences> = _privacyPreferences.asStateFlow()
 
-    private val _mediaLibrary = MutableStateFlow<List<MediaAsset>>(emptyList())
+    private val _mediaLibrary = MutableStateFlow(loadPersistedMediaLibrary())
     val mediaLibrary: StateFlow<List<MediaAsset>> = _mediaLibrary.asStateFlow()
 
     private val _experiencePreferences = MutableStateFlow(ExperiencePreferences())
@@ -1318,8 +1326,65 @@ class SamrRepository {
         deleteScheduledPost(postId)
     }
 
+    private fun loadPersistedMediaLibrary(): List<MediaAsset> {
+        val raw = mediaPrefs?.getString("assets", null) ?: return emptyList()
+        return runCatching {
+            val array = JSONArray(raw)
+            buildList {
+                for (index in 0 until array.length()) {
+                    val item = array.getJSONObject(index)
+                    add(
+                        MediaAsset(
+                            id = item.getString("id"),
+                            uri = item.getString("uri"),
+                            kind = MediaKind.valueOf(item.getString("kind")),
+                            origin = MediaOrigin.valueOf(item.getString("origin")),
+                            title = item.optString("title"),
+                            mimeType = item.optString("mimeType"),
+                            durationMs = item.optLong("durationMs", 0L),
+                            trimStartMs = item.optLong("trimStartMs", 0L),
+                            trimEndMs = if (item.has("trimEndMs") && !item.isNull("trimEndMs")) item.getLong("trimEndMs") else null,
+                            playbackSpeed = item.optDouble("playbackSpeed", 1.0).toFloat(),
+                            isMuted = item.optBoolean("isMuted", false),
+                            filterName = item.optString("filterName", "Original"),
+                            overlayText = item.optString("overlayText"),
+                            altText = item.optString("altText"),
+                            isFavorite = item.optBoolean("isFavorite", false)
+                        )
+                    )
+                }
+            }
+        }.getOrDefault(emptyList())
+    }
+
+    private fun persistMediaLibrary() {
+        val prefs = mediaPrefs ?: return
+        val array = JSONArray()
+        _mediaLibrary.value.forEach { asset ->
+            val item = JSONObject()
+                .put("id", asset.id)
+                .put("uri", asset.uri)
+                .put("kind", asset.kind.name)
+                .put("origin", asset.origin.name)
+                .put("title", asset.title)
+                .put("mimeType", asset.mimeType)
+                .put("durationMs", asset.durationMs)
+                .put("trimStartMs", asset.trimStartMs)
+                .put("playbackSpeed", asset.playbackSpeed.toDouble())
+                .put("isMuted", asset.isMuted)
+                .put("filterName", asset.filterName)
+                .put("overlayText", asset.overlayText)
+                .put("altText", asset.altText)
+                .put("isFavorite", asset.isFavorite)
+            if (asset.trimEndMs != null) item.put("trimEndMs", asset.trimEndMs)
+            array.put(item)
+        }
+        prefs.edit().putString("assets", array.toString()).apply()
+    }
+
     fun addMediaAsset(asset: MediaAsset) {
         _mediaLibrary.value = listOf(asset) + _mediaLibrary.value.filterNot { it.id == asset.id }
+        persistMediaLibrary()
     }
 
     fun addMediaAssets(assets: List<MediaAsset>) {
@@ -1330,10 +1395,12 @@ class SamrRepository {
         _mediaLibrary.value = _mediaLibrary.value.map {
             if (it.id == asset.id) asset else it
         }
+        persistMediaLibrary()
     }
 
     fun deleteMediaAsset(assetId: String) {
         _mediaLibrary.value = _mediaLibrary.value.filterNot { it.id == assetId }
+        persistMediaLibrary()
     }
 
     fun duplicateMediaAsset(assetId: String) {
@@ -1350,6 +1417,7 @@ class SamrRepository {
         _mediaLibrary.value = _mediaLibrary.value.map {
             if (it.id == assetId) it.copy(isFavorite = !it.isFavorite) else it
         }
+        persistMediaLibrary()
     }
 
     fun publishVideoAssetAsClip(asset: MediaAsset, caption: String) {
