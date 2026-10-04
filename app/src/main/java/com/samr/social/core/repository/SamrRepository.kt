@@ -7,11 +7,15 @@ import com.samr.social.core.model.EchoNote
 import com.samr.social.core.model.Community
 import com.samr.social.core.model.Conversation
 import com.samr.social.core.model.DirectMessage
+import com.samr.social.core.model.MajlisRoom
+import com.samr.social.core.model.MajlisStatus
 import com.samr.social.core.model.MessageStatus
 import com.samr.social.core.model.MoodType
+import com.samr.social.core.model.PollOption
 import com.samr.social.core.model.Post
 import com.samr.social.core.model.PostComment
 import com.samr.social.core.model.PostLifetime
+import com.samr.social.core.model.PostPoll
 import com.samr.social.core.model.SamrCircle
 import com.samr.social.core.model.SavedCollection
 import com.samr.social.core.model.SocialLayer
@@ -284,7 +288,15 @@ class SamrRepository {
                 socialLayer = SocialLayer.TECH,
                 mood = MoodType.LEARN,
                 discussionRoomId = "room_android_architecture",
-                discussionRoomTopic = "معمارية تطبيقات Android"
+                discussionRoomTopic = "معمارية تطبيقات Android",
+                poll = PostPoll(
+                    question = "أي جانب يحتاج أكبر تركيز في تطبيق اجتماعي عربي جديد؟",
+                    options = listOf(
+                        PollOption("poll_arch_1", "الخصوصية والتحكم", 684),
+                        PollOption("poll_arch_2", "سرعة وسلاسة التجربة", 932),
+                        PollOption("poll_arch_3", "المجتمعات والمحتوى", 511)
+                    )
+                )
             ),
             Post(
                 id = "post_reem_collab",
@@ -584,6 +596,61 @@ class SamrRepository {
     )
     val communities: StateFlow<List<Community>> = _communities.asStateFlow()
 
+    private val _majlisRooms = MutableStateFlow(
+        listOf(
+            MajlisRoom(
+                id = "majlis_live_design",
+                title = "كيف نصنع منتجًا عربيًا عالميًا؟",
+                description = "جلسة مفتوحة عن بناء هوية رقمية عربية معاصرة، من الفكرة حتى التفاصيل الدقيقة في تجربة الاستخدام.",
+                category = "التصميم والمنتج",
+                host = _currentUser.value,
+                coHosts = listOf(reem),
+                status = MajlisStatus.LIVE,
+                participantCount = 428,
+                scheduledLabel = "مباشر الآن",
+                accentHex = 0xFFD4AF37,
+                isJoined = true
+            ),
+            MajlisRoom(
+                id = "majlis_live_android",
+                title = "Compose بلا تعقيد",
+                description = "نقاش تقني عن القرارات التي تجعل واجهات Android أسرع وأسهل في الصيانة.",
+                category = "التقنية",
+                host = aziz,
+                coHosts = listOf(faisal),
+                status = MajlisStatus.LIVE,
+                participantCount = 263,
+                scheduledLabel = "مباشر الآن",
+                accentHex = 0xFF38BDF8
+            ),
+            MajlisRoom(
+                id = "majlis_upcoming_creative",
+                title = "ضوء المدن: من الرياض إلى كيوتو",
+                description = "جلسة بصرية بين التصوير والعمارة والهوية المكانية، مع مساحة أسئلة مفتوحة.",
+                category = "الفنون البصرية",
+                host = faisal,
+                coHosts = listOf(elena),
+                status = MajlisStatus.UPCOMING,
+                participantCount = 1180,
+                scheduledLabel = "اليوم • 9:00 م",
+                accentHex = 0xFF8B5CF6
+            ),
+            MajlisRoom(
+                id = "majlis_upcoming_career",
+                title = "بناء حضور مهني بدون ضجيج",
+                description = "كيف تستخدم الطبقات الاجتماعية والدوائر لبناء حضور مهني واضح دون خلط كل سياقات حياتك.",
+                category = "المسار المهني",
+                host = reem,
+                coHosts = listOf(_currentUser.value),
+                status = MajlisStatus.UPCOMING,
+                participantCount = 742,
+                scheduledLabel = "غدًا • 8:30 م",
+                accentHex = 0xFF10B981
+            )
+        )
+    )
+    val majlisRooms: StateFlow<List<MajlisRoom>> = _majlisRooms.asStateFlow()
+
     // Smart Catch-up Summary
     val catchUpSummary = CatchUpSummary(
         missedPostsCount = 12,
@@ -612,6 +679,32 @@ class SamrRepository {
                     resonanceCount = if (resonated) post.resonanceCount + 1 else maxOf(0, post.resonanceCount - 1)
                 )
             } else post
+        }
+    }
+
+    fun votePoll(postId: String, optionId: String) {
+        _posts.value = _posts.value.map { post ->
+            if (post.id != postId || post.poll == null || post.poll.isClosed) {
+                post
+            } else {
+                val poll = post.poll
+                val previous = poll.selectedOptionId
+                val updatedOptions = poll.options.map { option ->
+                    when {
+                        option.id == previous && previous != optionId ->
+                            option.copy(votes = maxOf(0, option.votes - 1))
+                        option.id == optionId && previous != optionId ->
+                            option.copy(votes = option.votes + 1)
+                        else -> option
+                    }
+                }
+                post.copy(
+                    poll = poll.copy(
+                        options = updatedOptions,
+                        selectedOptionId = optionId
+                    )
+                )
+            }
         }
     }
 
@@ -676,7 +769,9 @@ class SamrRepository {
         lifetime: PostLifetime,
         collaborator: User?,
         allowComments: Boolean = true,
-        hideLikeCount: Boolean = false
+        hideLikeCount: Boolean = false,
+        pollQuestion: String? = null,
+        pollOptions: List<String> = emptyList()
     ) {
         val newPost = Post(
             id = "post_${UUID.randomUUID().toString().take(8)}",
@@ -695,7 +790,24 @@ class SamrRepository {
             lifetime = lifetime,
             collaborator = collaborator,
             allowComments = allowComments,
-            hideLikeCount = hideLikeCount
+            hideLikeCount = hideLikeCount,
+            poll = pollQuestion
+                ?.trim()
+                ?.takeIf { it.isNotBlank() && pollOptions.count { option -> option.isNotBlank() } >= 2 }
+                ?.let { question ->
+                    PostPoll(
+                        question = question,
+                        options = pollOptions
+                            .filter { it.isNotBlank() }
+                            .take(4)
+                            .mapIndexed { index, option ->
+                                PollOption(
+                                    id = "poll_${UUID.randomUUID().toString().take(6)}_$index",
+                                    text = option.trim()
+                                )
+                            }
+                    )
+                }
         )
         _posts.value = listOf(newPost) + _posts.value
     }
@@ -718,6 +830,37 @@ class SamrRepository {
     fun toggleJoinCommunity(communityId: String) {
         _communities.value = _communities.value.map {
             if (it.id == communityId) it.copy(isJoined = !it.isJoined) else it
+        }
+    }
+
+    fun toggleMajlisJoin(roomId: String) {
+        _majlisRooms.value = _majlisRooms.value.map { room ->
+            if (room.id != roomId) {
+                room
+            } else {
+                val joined = !room.isJoined
+                room.copy(
+                    isJoined = joined,
+                    participantCount = if (joined) room.participantCount + 1 else maxOf(0, room.participantCount - 1),
+                    isHandRaised = if (joined) room.isHandRaised else false
+                )
+            }
+        }
+    }
+
+    fun toggleMajlisHand(roomId: String) {
+        _majlisRooms.value = _majlisRooms.value.map { room ->
+            if (room.id == roomId && room.status == MajlisStatus.LIVE && room.isJoined) {
+                room.copy(isHandRaised = !room.isHandRaised)
+            } else room
+        }
+    }
+
+    fun toggleMajlisReminder(roomId: String) {
+        _majlisRooms.value = _majlisRooms.value.map { room ->
+            if (room.id == roomId && room.status == MajlisStatus.UPCOMING) {
+                room.copy(isReminderSet = !room.isReminderSet)
+            } else room
         }
     }
 
