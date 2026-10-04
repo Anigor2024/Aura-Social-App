@@ -1,5 +1,6 @@
 package com.samr.social.features.home
 
+import android.content.Intent
 import android.view.HapticFeedbackConstants
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -86,6 +87,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
+    val context = LocalContext.current
 
     val posts by repository.posts.collectAsState()
     val stories by repository.stories.collectAsState()
@@ -216,7 +218,13 @@ fun HomeScreen(
                     onCommentClick = { selectedPostId = post.id },
                     onBookmarkClick = { repository.toggleBookmark(post.id) },
                     onRepostClick = { repository.toggleRepost(post.id) },
-                    onShareClick = { },
+                    onShareClick = {
+                        val intent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, post.text)
+                        }
+                        context.startActivity(Intent.createChooser(intent, null))
+                    },
                     onAuthorClick = onNavigateToProfile,
                     onJoinRoomClick = { roomId ->
                         activeRoomId = roomId
@@ -398,7 +406,7 @@ fun HomeScreen(
 
 
 @Composable
-private fun CommentsSheetContent(
+fun CommentsSheetContent(
     post: Post,
     comments: List<com.samr.social.core.model.PostComment>,
     currentUserId: String,
