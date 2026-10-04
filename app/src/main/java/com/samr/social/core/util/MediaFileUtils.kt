@@ -20,7 +20,7 @@ import java.util.UUID
 object MediaFileUtils {
 
     fun mediaDirectory(context: Context): File =
-        File(context.cacheDir, "media").apply { mkdirs() }
+        File(context.filesDir, "media").apply { mkdirs() }
 
     fun createAudioFile(context: Context): File =
         File(mediaDirectory(context), "samr_audio_${System.currentTimeMillis()}.m4a")
