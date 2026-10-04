@@ -875,6 +875,8 @@ class SamrRepository(
             hideLikeCount = hideLikeCount,
             locationTag = locationTag?.trim()?.takeIf { it.isNotBlank() },
             altText = altText?.trim()?.takeIf { it.isNotBlank() },
+            allowDownloads = _privacyPreferences.value.allowMediaDownloads,
+            allowRemix = _privacyPreferences.value.allowRemixes,
             poll = pollQuestion
                 ?.trim()
                 ?.takeIf { it.isNotBlank() && pollOptions.count { option -> option.isNotBlank() } >= 2 }
@@ -1380,6 +1382,36 @@ class SamrRepository(
             array.put(item)
         }
         prefs.edit().putString("assets", array.toString()).apply()
+    }
+
+    fun remixPostToLibrary(postId: String): List<MediaAsset> {
+        val post = _posts.value.firstOrNull { it.id == postId } ?: return emptyList()
+        if (!post.allowRemix) return emptyList()
+
+        val assets = if (post.mediaAssets.isNotEmpty()) {
+            post.mediaAssets.map { asset ->
+                asset.copy(
+                    id = "media_${UUID.randomUUID().toString().take(8)}",
+                    origin = MediaOrigin.STUDIO,
+                    title = "Remix • " + asset.title
+                )
+            }
+        } else {
+            post.mediaUrls.mapIndexed { index, url ->
+                MediaAsset(
+                    id = "media_${UUID.randomUUID().toString().take(8)}_$index",
+                    uri = url,
+                    kind = MediaKind.IMAGE,
+                    origin = MediaOrigin.IMPORTED,
+                    title = "Remix • " + post.author.displayName,
+                    mimeType = "image/jpeg",
+                    altText = post.altText.orEmpty()
+                )
+            }
+        }
+
+        addMediaAssets(assets)
+        return assets
     }
 
     fun addMediaAsset(asset: MediaAsset) {
