@@ -16,6 +16,7 @@ import com.samr.social.core.model.Post
 import com.samr.social.core.model.PostComment
 import com.samr.social.core.model.PostLifetime
 import com.samr.social.core.model.PostPoll
+import com.samr.social.core.model.PrivacyPreferences
 import com.samr.social.core.model.SamrCircle
 import com.samr.social.core.model.SavedCollection
 import com.samr.social.core.model.SocialLayer
@@ -414,6 +415,17 @@ class SamrRepository {
         )
     )
     val savedCollections: StateFlow<List<SavedCollection>> = _savedCollections.asStateFlow()
+
+    private val _privacyPreferences = MutableStateFlow(
+        PrivacyPreferences(
+            allowMessages = true,
+            allowMentions = true,
+            showActivityStatus = true,
+            sensitiveContentFilter = true,
+            hiddenWords = listOf("spam", "spoiler", "إزعاج")
+        )
+    )
+    val privacyPreferences: StateFlow<PrivacyPreferences> = _privacyPreferences.asStateFlow()
 
     // Clips with actual working video stream URLs
     private val _clips = MutableStateFlow(
@@ -1050,6 +1062,26 @@ class SamrRepository {
 
     fun deleteNotification(notificationId: String) {
         _notifications.value = _notifications.value.filterNot { it.id == notificationId }
+    }
+
+    fun updatePrivacyPreferences(
+        allowMessages: Boolean,
+        allowMentions: Boolean,
+        showActivityStatus: Boolean,
+        sensitiveContentFilter: Boolean,
+        hiddenWords: List<String>
+    ) {
+        _privacyPreferences.value = PrivacyPreferences(
+            allowMessages = allowMessages,
+            allowMentions = allowMentions,
+            showActivityStatus = showActivityStatus,
+            sensitiveContentFilter = sensitiveContentFilter,
+            hiddenWords = hiddenWords
+                .map { it.trim() }
+                .filter { it.isNotBlank() }
+                .distinct()
+                .take(30)
+        )
     }
 
     fun createSavedCollection(title: String) {
