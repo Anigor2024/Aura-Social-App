@@ -29,6 +29,7 @@ import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material.icons.outlined.VideoLibrary
 import androidx.compose.material.icons.outlined.VolumeMute
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -78,6 +79,7 @@ fun SettingsScreen(
     onOpenSafetyCenter: () -> Unit = {},
     onOpenExperienceCenter: () -> Unit = {},
     onOpenContentHub: () -> Unit = {},
+    onOpenMediaStudio: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
@@ -155,6 +157,13 @@ fun SettingsScreen(
             title = stringResource(R.string.content_hub),
             subtitle = stringResource(R.string.content_hub_subtitle),
             onClick = onOpenContentHub
+        )
+
+        SettingsNavigationRow(
+            icon = Icons.Outlined.VideoLibrary,
+            title = stringResource(R.string.media_studio),
+            subtitle = stringResource(R.string.media_studio_desc),
+            onClick = onOpenMediaStudio
         )
 
         SettingsSectionHeader(
