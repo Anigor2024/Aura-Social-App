@@ -14,7 +14,7 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.video.MediaStoreOutputOptions
+import androidx.camera.video.FileOutputOptions
 import androidx.camera.video.Recorder
 import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
@@ -691,32 +691,27 @@ private fun CameraStudioContent(repository: SamrRepository) {
         ) {
             Button(
                 onClick = {
-                    val values = ContentValues().apply {
-                        put(MediaStore.Images.Media.DISPLAY_NAME, "SAMR_${System.currentTimeMillis()}")
-                        put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-                    }
-                    val output = ImageCapture.OutputFileOptions.Builder(
-                        context.contentResolver,
-                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                        values
-                    ).build()
+                    val photoFile = java.io.File(
+                        MediaFileUtils.mediaDirectory(context),
+                        "samr_photo_${System.currentTimeMillis()}.jpg"
+                    )
+                    val output = ImageCapture.OutputFileOptions.Builder(photoFile).build()
                     imageCapture.takePicture(
                         output,
                         executor,
                         object : ImageCapture.OnImageSavedCallback {
                             override fun onImageSaved(result: ImageCapture.OutputFileResults) {
-                                result.savedUri?.let { uri ->
-                                    repository.addMediaAsset(
-                                        MediaAsset(
-                                            id = "media_${UUID.randomUUID().toString().take(8)}",
-                                            uri = uri.toString(),
-                                            kind = MediaKind.IMAGE,
-                                            origin = MediaOrigin.CAMERA,
-                                            title = "SAMR photo",
-                                            mimeType = "image/jpeg"
-                                        )
+                                val uri = MediaFileUtils.uriForFile(context, photoFile)
+                                repository.addMediaAsset(
+                                    MediaAsset(
+                                        id = "media_${UUID.randomUUID().toString().take(8)}",
+                                        uri = uri.toString(),
+                                        kind = MediaKind.IMAGE,
+                                        origin = MediaOrigin.CAMERA,
+                                        title = "SAMR photo",
+                                        mimeType = "image/jpeg"
                                     )
-                                }
+                                )
                             }
 
                             override fun onError(exception: ImageCaptureException) = Unit
@@ -738,16 +733,11 @@ private fun CameraStudioContent(repository: SamrRepository) {
                         recording?.stop()
                         recording = null
                     } else {
-                        val values = ContentValues().apply {
-                            put(MediaStore.Video.Media.DISPLAY_NAME, "SAMR_VIDEO_${System.currentTimeMillis()}")
-                            put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
-                        }
-                        val output = MediaStoreOutputOptions.Builder(
-                            context.contentResolver,
-                            MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                        val videoFile = java.io.File(
+                            MediaFileUtils.mediaDirectory(context),
+                            "samr_video_${System.currentTimeMillis()}.mp4"
                         )
-                            .setContentValues(values)
-                            .build()
+                        val output = FileOutputOptions.Builder(videoFile).build()
 
                         recording = videoCapture.output
                             .prepareRecording(context, output)
@@ -755,7 +745,7 @@ private fun CameraStudioContent(repository: SamrRepository) {
                             .start(executor) { event ->
                                 if (event is VideoRecordEvent.Finalize) {
                                     if (!event.hasError()) {
-                                        val uri = event.outputResults.outputUri
+                                        val uri = MediaFileUtils.uriForFile(context, videoFile)
                                         repository.addMediaAsset(
                                             MediaAsset(
                                                 id = "media_${UUID.randomUUID().toString().take(8)}",
