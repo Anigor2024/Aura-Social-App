@@ -71,7 +71,9 @@ data class Post(
     val isQuietModeEligible: Boolean = true,
     val allowComments: Boolean = true,
     val hideLikeCount: Boolean = false,
-    val isPinned: Boolean = false
+    val isPinned: Boolean = false,
+    val resonanceCount: Int = 0,
+    val isResonated: Boolean = false
 )
 
 data class PostComment(
@@ -104,6 +106,15 @@ data class SavedCollection(
     val postIds: List<String> = emptyList()
 )
 
+data class EchoNote(
+    val id: String,
+    val author: User,
+    val text: String,
+    val emoji: String = "✦",
+    val timestampLabel: String = "الآن",
+    val isMine: Boolean = false
+)
+
 data class Story(
     val id: String,
     val author: User,
@@ -111,6 +122,14 @@ data class Story(
     val timestampMinutesAgo: Int = 120,
     val isViewed: Boolean = false,
     val caption: String = ""
+)
+
+data class ClipComment(
+    val id: String,
+    val clipId: String,
+    val author: User,
+    val text: String,
+    val timestampLabel: String = "الآن"
 )
 
 data class Clip(
