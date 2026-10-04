@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -29,13 +28,15 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.VolumeMute
-import androidx.compose.material3.Divider
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -44,7 +45,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalView
@@ -53,20 +53,35 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.samr.social.R
 import com.samr.social.core.repository.SamrRepository
-import com.samr.social.ui.theme.AuraChampagne
-import com.samr.social.ui.theme.AuraRose
+import com.samr.social.core.util.AppThemeMode
+import com.samr.social.ui.theme.SamrChampagne
+import com.samr.social.ui.theme.SamrRose
+
+private enum class InfoSection {
+    ACCOUNT,
+    PRIVACY,
+    SECURITY,
+    NOTIFICATIONS
+}
 
 @Composable
 fun SettingsScreen(
     repository: SamrRepository,
+    themeMode: AppThemeMode,
+    onThemeChange: (AppThemeMode) -> Unit,
     onBack: () -> Unit,
     onLogout: () -> Unit,
+    onResetDemo: () -> Unit,
     onOpenLanguageSelect: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
     val isQuietMode by repository.isQuietMode.collectAsState()
+
     var isDataSaverEnabled by remember { mutableStateOf(false) }
+    var showThemePicker by remember { mutableStateOf(false) }
+    var showResetDialog by remember { mutableStateOf(false) }
+    var infoSection by remember { mutableStateOf<InfoSection?>(null) }
 
     Column(
         modifier = modifier
@@ -75,7 +90,6 @@ fun SettingsScreen(
             .statusBarsPadding()
             .verticalScroll(rememberScrollState())
     ) {
-        // Top Bar
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -85,19 +99,23 @@ fun SettingsScreen(
             IconButton(onClick = onBack) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = stringResource(R.string.back_button),
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
+
             Text(
                 text = stringResource(R.string.settings_title),
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.Bold
+                ),
                 color = MaterialTheme.colorScheme.onSurface
             )
         }
 
-        // Section: Mindful Social Preferences
-        SettingsSectionHeader(title = "Mindful Experience")
+        SettingsSectionHeader(
+            title = stringResource(R.string.mindful_experience)
+        )
 
         SettingsSwitchRow(
             icon = Icons.Outlined.VolumeMute,
@@ -105,7 +123,9 @@ fun SettingsScreen(
             description = stringResource(R.string.quiet_feed_active_hint),
             checked = isQuietMode,
             onCheckedChange = {
-                view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                view.performHapticFeedback(
+                    HapticFeedbackConstants.KEYBOARD_TAP
+                )
                 repository.toggleQuietMode()
             }
         )
@@ -118,41 +138,48 @@ fun SettingsScreen(
             onCheckedChange = { isDataSaverEnabled = it }
         )
 
-        // Section: Account & Safety
-        SettingsSectionHeader(title = "Account & Privacy")
+        SettingsSectionHeader(
+            title = stringResource(R.string.privacy_safety)
+        )
 
         SettingsNavigationRow(
             icon = Icons.Outlined.AccountCircle,
             title = stringResource(R.string.account_settings),
-            onClick = { }
+            onClick = { infoSection = InfoSection.ACCOUNT }
         )
 
         SettingsNavigationRow(
             icon = Icons.Outlined.Shield,
             title = stringResource(R.string.privacy_safety),
-            onClick = { }
+            onClick = { infoSection = InfoSection.PRIVACY }
         )
 
         SettingsNavigationRow(
             icon = Icons.Outlined.Lock,
             title = stringResource(R.string.security_center),
-            onClick = { }
+            onClick = { infoSection = InfoSection.SECURITY }
         )
 
         SettingsNavigationRow(
             icon = Icons.Outlined.Notifications,
             title = stringResource(R.string.notifications_settings),
-            onClick = { }
+            onClick = { infoSection = InfoSection.NOTIFICATIONS }
         )
 
-        // Section: Appearance & Language
-        SettingsSectionHeader(title = "System & Localization")
+        SettingsSectionHeader(
+            title = stringResource(R.string.system_localization)
+        )
 
         SettingsNavigationRow(
             icon = Icons.Outlined.Palette,
             title = stringResource(R.string.appearance_settings),
-            subtitle = stringResource(R.string.theme_dark),
-            onClick = { }
+            subtitle = when (themeMode) {
+                AppThemeMode.SYSTEM -> stringResource(R.string.theme_system)
+                AppThemeMode.LIGHT -> stringResource(R.string.theme_light)
+                AppThemeMode.DARK -> stringResource(R.string.theme_dark)
+                AppThemeMode.OLED -> stringResource(R.string.theme_oled)
+            },
+            onClick = { showThemePicker = true }
         )
 
         SettingsNavigationRow(
@@ -164,7 +191,6 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Destructive / Exit actions
         SettingsActionRow(
             icon = Icons.Outlined.Logout,
             title = stringResource(R.string.logout),
@@ -175,25 +201,176 @@ fun SettingsScreen(
         SettingsActionRow(
             icon = Icons.Outlined.DeleteForever,
             title = stringResource(R.string.delete_account),
-            color = AuraRose,
-            onClick = onLogout
+            color = SamrRose,
+            onClick = { showResetDialog = true }
         )
 
         Spacer(modifier = Modifier.height(40.dp))
     }
+
+    if (showThemePicker) {
+        AlertDialog(
+            onDismissRequest = { showThemePicker = false },
+            title = {
+                Text(stringResource(R.string.theme_picker_title))
+            },
+            text = {
+                Column {
+                    ThemeChoice(
+                        mode = AppThemeMode.SYSTEM,
+                        label = stringResource(R.string.theme_system),
+                        current = themeMode,
+                        onChange = onThemeChange
+                    )
+                    ThemeChoice(
+                        mode = AppThemeMode.LIGHT,
+                        label = stringResource(R.string.theme_light),
+                        current = themeMode,
+                        onChange = onThemeChange
+                    )
+                    ThemeChoice(
+                        mode = AppThemeMode.DARK,
+                        label = stringResource(R.string.theme_dark),
+                        current = themeMode,
+                        onChange = onThemeChange
+                    )
+                    ThemeChoice(
+                        mode = AppThemeMode.OLED,
+                        label = stringResource(R.string.theme_oled),
+                        current = themeMode,
+                        onChange = onThemeChange
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { showThemePicker = false }
+                ) {
+                    Text(stringResource(R.string.done))
+                }
+            }
+        )
+    }
+
+    if (showResetDialog) {
+        AlertDialog(
+            onDismissRequest = { showResetDialog = false },
+            title = {
+                Text(stringResource(R.string.reset_demo_title))
+            },
+            text = {
+                Text(stringResource(R.string.reset_demo_desc))
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showResetDialog = false
+                        onResetDemo()
+                    }
+                ) {
+                    Text(
+                        text = stringResource(R.string.clear_local_session),
+                        color = SamrRose
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showResetDialog = false }
+                ) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    infoSection?.let { section ->
+        val title = when (section) {
+            InfoSection.ACCOUNT -> stringResource(
+                R.string.account_details_title
+            )
+            InfoSection.PRIVACY -> stringResource(
+                R.string.privacy_title
+            )
+            InfoSection.SECURITY -> stringResource(
+                R.string.security_title
+            )
+            InfoSection.NOTIFICATIONS -> stringResource(
+                R.string.notifications_title
+            )
+        }
+
+        val body = when (section) {
+            InfoSection.ACCOUNT -> stringResource(
+                R.string.account_status_demo
+            )
+            InfoSection.PRIVACY -> stringResource(
+                R.string.privacy_circles_hint
+            )
+            InfoSection.SECURITY -> stringResource(
+                R.string.security_desc
+            )
+            InfoSection.NOTIFICATIONS -> stringResource(
+                R.string.settings_info_demo
+            )
+        }
+
+        AlertDialog(
+            onDismissRequest = { infoSection = null },
+            title = { Text(title) },
+            text = { Text(body) },
+            confirmButton = {
+                TextButton(
+                    onClick = { infoSection = null }
+                ) {
+                    Text(stringResource(R.string.done))
+                }
+            }
+        )
+    }
 }
 
 @Composable
-fun SettingsSectionHeader(title: String) {
+private fun ThemeChoice(
+    mode: AppThemeMode,
+    label: String,
+    current: AppThemeMode,
+    onChange: (AppThemeMode) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onChange(mode) }
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        RadioButton(
+            selected = current == mode,
+            onClick = { onChange(mode) }
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = label)
+    }
+}
+
+@Composable
+private fun SettingsSectionHeader(
+    title: String
+) {
     Text(
         text = title,
-        style = MaterialTheme.typography.labelLarge.copy(color = AuraChampagne),
-        modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)
+        style = MaterialTheme.typography.labelLarge.copy(
+            color = SamrChampagne
+        ),
+        modifier = Modifier.padding(
+            horizontal = 20.dp,
+            vertical = 12.dp
+        )
     )
 }
 
 @Composable
-fun SettingsSwitchRow(
+private fun SettingsSwitchRow(
     icon: ImageVector,
     title: String,
     description: String? = null,
@@ -240,14 +417,14 @@ fun SettingsSwitchRow(
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.Black,
-                checkedTrackColor = AuraChampagne
+                checkedTrackColor = SamrChampagne
             )
         )
     }
 }
 
 @Composable
-fun SettingsNavigationRow(
+private fun SettingsNavigationRow(
     icon: ImageVector,
     title: String,
     subtitle: String? = null,
@@ -261,7 +438,9 @@ fun SettingsNavigationRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
@@ -287,7 +466,7 @@ fun SettingsNavigationRow(
 }
 
 @Composable
-fun SettingsActionRow(
+private fun SettingsActionRow(
     icon: ImageVector,
     title: String,
     color: Color,
@@ -309,7 +488,9 @@ fun SettingsActionRow(
         Spacer(modifier = Modifier.width(16.dp))
         Text(
             text = title,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.Medium
+            ),
             color = color
         )
     }
