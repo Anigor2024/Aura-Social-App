@@ -217,6 +217,7 @@ data class Story(
     val id: String,
     val author: User,
     val mediaUrl: String,
+    val mediaKind: MediaKind = MediaKind.IMAGE,
     val timestampMinutesAgo: Int = 120,
     val isViewed: Boolean = false,
     val caption: String = ""
@@ -257,6 +258,7 @@ data class DirectMessage(
     val voiceDurationSeconds: Int? = null,
     val voiceWaveform: List<Float>? = null,
     val mediaUrl: String? = null,
+    val mediaAsset: MediaAsset? = null,
     val status: MessageStatus = MessageStatus.READ,
     val reaction: String? = null,
     val replyToText: String? = null
