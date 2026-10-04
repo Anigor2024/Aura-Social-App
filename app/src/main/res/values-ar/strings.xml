@@ -534,4 +534,10 @@
     <string name="downloads_disabled">صاحب المحتوى أوقف تنزيل الوسائط</string>
     <string name="remix_disabled">صاحب المحتوى أوقف إعادة المزج</string>
     <string name="media_download_started">بدأ تنزيل الوسائط</string>
+    <string name="switch_camera">تبديل الكاميرا</string>
+    <string name="flash_on">تشغيل الفلاش</string>
+    <string name="flash_off">إيقاف الفلاش</string>
+    <string name="pause_audio">إيقاف التسجيل مؤقتًا</string>
+    <string name="resume_audio">استئناف التسجيل</string>
+    <string name="recording_duration">%1$02d:%2$02d</string>
 </resources>
