@@ -624,7 +624,8 @@ fun ProfileScreen(
                         onMuteCreatorClick = { repository.toggleMuteUser(post.author.id) },
                         onReportClick = { repository.reportPost(post.id) },
                         onHideClick = { repository.hidePost(post.id) },
-                        compactMode = experiencePreferences.compactFeed
+                        compactMode = experiencePreferences.compactFeed,
+                        autoplayMedia = experiencePreferences.autoplayVideos
                     )
                 }
             }
