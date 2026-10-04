@@ -30,7 +30,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -78,7 +80,10 @@ fun CreatePostScreen(
     var postText by remember { mutableStateOf("") }
     var selectedLifetime by remember { mutableStateOf(PostLifetime.PERMANENT) }
     var selectedCircle by remember { mutableStateOf<SamrCircle?>(null) }
-    var attachedImageUrl by remember { mutableStateOf<String?>("https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=1000&q=80") }
+    var attachedImageUrl by remember { mutableStateOf<String?>(null) }
+    var mediaUrlInput by remember { mutableStateOf("") }
+    var allowComments by remember { mutableStateOf(true) }
+    var hideLikeCount by remember { mutableStateOf(false) }
     var selectedFilterIndex by remember { mutableStateOf(0) }
 
     val filterNames = listOf(
@@ -127,7 +132,9 @@ fun CreatePostScreen(
                             mediaUrls = if (attachedImageUrl != null) listOf(attachedImageUrl!!) else emptyList(),
                             circle = selectedCircle,
                             lifetime = selectedLifetime,
-                            collaborator = null
+                            collaborator = null,
+                            allowComments = allowComments,
+                            hideLikeCount = hideLikeCount
                         )
                         onPostCreated()
                     }
@@ -213,6 +220,49 @@ fun CreatePostScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        Text(
+            text = stringResource(R.string.advanced_publish),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = mediaUrlInput,
+            onValueChange = {
+                mediaUrlInput = it
+                attachedImageUrl = it.trim().takeIf(String::isNotBlank)
+            },
+            label = { Text(stringResource(R.string.media_url_label)) },
+            placeholder = { Text("https://...") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            singleLine = true
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            TextButton(
+                onClick = {
+                    mediaUrlInput = "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=1000&q=80"
+                    attachedImageUrl = mediaUrlInput
+                }
+            ) {
+                Text("Demo media")
+            }
+            if (attachedImageUrl != null) {
+                TextButton(
+                    onClick = {
+                        mediaUrlInput = ""
+                        attachedImageUrl = null
+                    }
+                ) {
+                    Text(stringResource(R.string.remove_media))
+                }
+            }
+        }
+
         // Media Preview & Filter Selector
         if (attachedImageUrl != null) {
             Box(
@@ -232,7 +282,10 @@ fun CreatePostScreen(
                 )
 
                 IconButton(
-                    onClick = { attachedImageUrl = null },
+                    onClick = {
+                        attachedImageUrl = null
+                        mediaUrlInput = ""
+                    },
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(8.dp)
@@ -280,6 +333,41 @@ fun CreatePostScreen(
                     }
                 }
             }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text(
+            text = stringResource(R.string.content_controls),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(stringResource(R.string.allow_comments))
+            Switch(checked = allowComments, onCheckedChange = { allowComments = it })
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(stringResource(R.string.hide_like_count))
+            Switch(checked = hideLikeCount, onCheckedChange = { hideLikeCount = it })
         }
 
         Spacer(modifier = Modifier.height(20.dp))
