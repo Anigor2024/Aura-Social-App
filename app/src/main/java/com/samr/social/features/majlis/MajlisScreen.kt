@@ -278,6 +278,8 @@ fun MajlisScreen(
                 LiveMajlisSheet(
                     room = room,
                     onToggleHand = { repository.toggleMajlisHand(room.id) },
+                    onApplause = { repository.reactMajlis(room.id, "applause") },
+                    onHeart = { repository.reactMajlis(room.id, "heart") },
                     onLeave = {
                         if (room.isJoined) repository.toggleMajlisJoin(room.id)
                         activeRoomId = null
@@ -484,6 +486,8 @@ private fun MajlisCard(
 private fun LiveMajlisSheet(
     room: MajlisRoom,
     onToggleHand: () -> Unit,
+    onApplause: () -> Unit,
+    onHeart: () -> Unit,
     onLeave: () -> Unit,
     onClose: () -> Unit
 ) {
@@ -562,6 +566,37 @@ private fun LiveMajlisSheet(
                         )
                     }
                 }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            stringResource(R.string.majlis_reactions),
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            TextButton(
+                onClick = onApplause,
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(SamrChampagne.copy(alpha = 0.10f))
+            ) {
+                Text("👏  " + room.applauseCount + "  " + stringResource(R.string.majlis_applause))
+            }
+            TextButton(
+                onClick = onHeart,
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.error.copy(alpha = 0.08f))
+            ) {
+                Text("❤  " + room.heartCount + "  " + stringResource(R.string.majlis_heart))
             }
         }
 
