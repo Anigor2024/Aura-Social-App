@@ -216,7 +216,8 @@ class SamrRepository {
                 isBookmarked = true,
                 socialLayer = SocialLayer.PROFESSIONAL,
                 mood = MoodType.DISCOVER,
-                discussionRoomId = "room_ux_simplicity"
+                discussionRoomId = "room_ux_simplicity",
+                discussionRoomTopic = "بساطة تجربة المستخدم"
             ),
             Post(
                 id = "post_faisal_1",
@@ -241,7 +242,8 @@ class SamrRepository {
                 repostsCount = 210,
                 socialLayer = SocialLayer.TECH,
                 mood = MoodType.LEARN,
-                discussionRoomId = "room_android_architecture"
+                discussionRoomId = "room_android_architecture",
+                discussionRoomTopic = "معمارية تطبيقات Android"
             ),
             Post(
                 id = "post_reem_collab",
