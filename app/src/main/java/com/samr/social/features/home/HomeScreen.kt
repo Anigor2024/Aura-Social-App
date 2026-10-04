@@ -89,6 +89,7 @@ fun HomeScreen(
     onCreatePost: () -> Unit = {},
     onOpenStudio: () -> Unit = {},
     onOpenMajlis: () -> Unit = {},
+    onOpenMediaStudio: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
@@ -177,7 +178,8 @@ fun HomeScreen(
                 onCatchUp = { showCatchUpSheet = true },
                 onQuiet = repository::toggleQuietMode,
                 onStudio = onOpenStudio,
-                onMajlis = onOpenMajlis
+                onMajlis = onOpenMajlis,
+                onMediaStudio = onOpenMediaStudio
             )
         }
 
@@ -896,7 +898,8 @@ private fun SamrTodayBrief(
     onCatchUp: () -> Unit,
     onQuiet: () -> Unit,
     onStudio: () -> Unit,
-    onMajlis: () -> Unit
+    onMajlis: () -> Unit,
+    onMediaStudio: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -956,11 +959,21 @@ private fun SamrTodayBrief(
             QuickActionChip(stringResource(R.string.quick_studio), onStudio, Modifier.weight(1f))
         }
         Spacer(modifier = Modifier.height(8.dp))
-        QuickActionChip(
-            label = stringResource(R.string.quick_majlis),
-            onClick = onMajlis,
-            modifier = Modifier.fillMaxWidth()
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(7.dp)
+        ) {
+            QuickActionChip(
+                label = stringResource(R.string.quick_majlis),
+                onClick = onMajlis,
+                modifier = Modifier.weight(1f)
+            )
+            QuickActionChip(
+                label = stringResource(R.string.open_media_studio),
+                onClick = onMediaStudio,
+                modifier = Modifier.weight(1f)
+            )
+        }
     }
 }
 
