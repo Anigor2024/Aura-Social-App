@@ -532,4 +532,9 @@
     <string name="media_caption">Media caption</string>
     <string name="choose_from_studio">Choose from SAMR Studio</string>
     <string name="recent_media">Recent media</string>
+    <string name="download_media">Download media</string>
+    <string name="remix_media">Remix in SAMR Studio</string>
+    <string name="downloads_disabled">Downloads disabled by creator</string>
+    <string name="remix_disabled">Remix disabled by creator</string>
+    <string name="media_download_started">Media download started</string>
 </resources>
