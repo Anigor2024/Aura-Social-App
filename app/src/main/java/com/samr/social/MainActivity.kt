@@ -292,7 +292,7 @@ fun SamrApp(
                             initialDraft = selectedDraft,
                             initialMediaAssets = selectedComposerMedia,
                             onPostCreated = {
-                                selectedComposerMedia = emptyList(),
+                                selectedComposerMedia = emptyList()
                                 selectedDraft = null
                                 isCreatingPost = false
                             },
