@@ -1,5 +1,6 @@
 package com.samr.social.features.profile
 
+import android.content.Intent
 import android.view.HapticFeedbackConstants
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,9 +26,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -72,6 +75,7 @@ import com.samr.social.core.designsystem.components.AuraSecondaryButton
 import com.samr.social.core.designsystem.components.getLayerColor
 import com.samr.social.core.designsystem.components.getLayerLabel
 import com.samr.social.core.repository.SamrRepository
+import com.samr.social.features.home.CommentsSheetContent
 import com.samr.social.ui.theme.AuraChampagne
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -82,14 +86,18 @@ fun ProfileScreen(
     modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
+    val context = LocalContext.current
     val currentUser by repository.currentUser.collectAsState()
     val posts by repository.posts.collectAsState()
+    val clips by repository.clips.collectAsState()
+    val comments by repository.comments.collectAsState()
     val isQuietMode by repository.isQuietMode.collectAsState()
 
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     var showEditSheet by remember { mutableStateOf(false) }
     var editingPostId by remember { mutableStateOf<String?>(null) }
     var deletingPostId by remember { mutableStateOf<String?>(null) }
+    var commentingPostId by remember { mutableStateOf<String?>(null) }
 
     // User's own posts and bookmarked posts
     val userPosts = remember(posts, currentUser.id) {
@@ -97,6 +105,9 @@ fun ProfileScreen(
     }
     val bookmarkedPosts = remember(posts) {
         posts.filter { it.isBookmarked }
+    }
+    val userClips = remember(clips, currentUser.id) {
+        clips.filter { it.author.id == currentUser.id }
     }
 
     val highlights = listOf(
@@ -183,7 +194,14 @@ fun ProfileScreen(
                         )
                         AuraSecondaryButton(
                             text = stringResource(R.string.share_profile),
-                            onClick = { /* Share */ },
+                            onClick = {
+                                val shareText = "@${currentUser.username} — ${currentUser.displayName}\n${currentUser.bio}"
+                                val intent = Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(Intent.EXTRA_TEXT, shareText)
+                                }
+                                context.startActivity(Intent.createChooser(intent, null))
+                            },
                             height = 38.dp
                         )
                     }
@@ -334,36 +352,117 @@ fun ProfileScreen(
         }
 
         // Tab Content
-        val displayedPosts = when (selectedTabIndex) {
-            0 -> userPosts
-            1 -> emptyList() // Clips tab
-            2 -> bookmarkedPosts
-            else -> userPosts
-        }
-
-        if (displayedPosts.isEmpty()) {
-            item {
-                AuraEmptyState(
-                    title = if (selectedTabIndex == 2) stringResource(R.string.empty_bookmarks_title) else stringResource(R.string.empty_feed_title),
-                    description = if (selectedTabIndex == 2) stringResource(R.string.empty_bookmarks_desc) else stringResource(R.string.empty_feed_desc),
-                    modifier = Modifier.padding(top = 20.dp)
-                )
+        if (selectedTabIndex == 1) {
+            if (userClips.isEmpty()) {
+                item {
+                    AuraEmptyState(
+                        title = stringResource(R.string.profile_clips_empty),
+                        description = stringResource(R.string.empty_feed_desc),
+                        modifier = Modifier.padding(top = 20.dp)
+                    )
+                }
+            } else {
+                items(userClips, key = { it.id }) { clip ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(MaterialTheme.colorScheme.surface)
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(clip.thumbnailUrl)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = clip.caption,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(92.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                        )
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(horizontal = 12.dp)
+                        ) {
+                            Text(
+                                clip.caption,
+                                style = MaterialTheme.typography.bodyMedium,
+                                maxLines = 3
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                clip.audioTrackTitle,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        IconButton(onClick = { repository.toggleClipLike(clip.id) }) {
+                            Icon(
+                                imageVector = if (clip.isLiked) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
+                                contentDescription = null,
+                                tint = if (clip.isLiked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
             }
         } else {
-            items(displayedPosts, key = { it.id }) { post ->
-                AuraPostCard(
+            val displayedPosts = if (selectedTabIndex == 2) bookmarkedPosts else userPosts
+
+            if (displayedPosts.isEmpty()) {
+                item {
+                    AuraEmptyState(
+                        title = if (selectedTabIndex == 2) stringResource(R.string.empty_bookmarks_title) else stringResource(R.string.empty_feed_title),
+                        description = if (selectedTabIndex == 2) stringResource(R.string.empty_bookmarks_desc) else stringResource(R.string.empty_feed_desc),
+                        modifier = Modifier.padding(top = 20.dp)
+                    )
+                }
+            } else {
+                items(displayedPosts, key = { it.id }) { post ->
+                    AuraPostCard(
+                        post = post,
+                        isQuietMode = isQuietMode,
+                        onLikeClick = { repository.toggleLike(post.id) },
+                        onCommentClick = { commentingPostId = post.id },
+                        onBookmarkClick = { repository.toggleBookmark(post.id) },
+                        onRepostClick = { repository.toggleRepost(post.id) },
+                        onShareClick = {
+                            val intent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, post.text)
+                            }
+                            context.startActivity(Intent.createChooser(intent, null))
+                        },
+                        onAuthorClick = { },
+                        isOwner = post.author.id == currentUser.id,
+                        onEditClick = { editingPostId = post.id },
+                        onDeleteClick = { deletingPostId = post.id },
+                        onPinClick = { repository.togglePinPost(post.id) }
+                    )
+                }
+            }
+        }
+    }
+
+    commentingPostId?.let { postId ->
+        val post = posts.firstOrNull { it.id == postId }
+        if (post != null) {
+            ModalBottomSheet(
+                onDismissRequest = { commentingPostId = null },
+                containerColor = MaterialTheme.colorScheme.surface,
+                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            ) {
+                CommentsSheetContent(
                     post = post,
-                    isQuietMode = isQuietMode,
-                    onLikeClick = { repository.toggleLike(post.id) },
-                    onCommentClick = { },
-                    onBookmarkClick = { repository.toggleBookmark(post.id) },
-                    onRepostClick = { repository.toggleRepost(post.id) },
-                    onShareClick = { },
-                    onAuthorClick = { },
-                    isOwner = post.author.id == currentUser.id,
-                    onEditClick = { editingPostId = post.id },
-                    onDeleteClick = { deletingPostId = post.id },
-                    onPinClick = { repository.togglePinPost(post.id) }
+                    comments = comments.filter { it.postId == postId },
+                    currentUserId = currentUser.id,
+                    onAddComment = { repository.addComment(postId, it) },
+                    onDeleteComment = repository::deleteComment,
+                    onClose = { commentingPostId = null }
                 )
             }
         }
