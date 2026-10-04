@@ -288,4 +288,9 @@
     <string name="content_controls">Content controls</string>
     <string name="privacy_audience">Audience &amp; privacy</string>
     <string name="advanced_publish">Advanced publishing</string>
+    <string name="people_results">People</string>
+    <string name="no_results">No matching results</string>
+    <string name="share_action">Share</string>
+    <string name="profile_clips_empty">No clips yet</string>
+    <string name="your_clips">Your clips</string>
 </resources>
