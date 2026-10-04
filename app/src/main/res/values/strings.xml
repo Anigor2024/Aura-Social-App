@@ -537,4 +537,10 @@
     <string name="downloads_disabled">Downloads disabled by creator</string>
     <string name="remix_disabled">Remix disabled by creator</string>
     <string name="media_download_started">Media download started</string>
+    <string name="switch_camera">Switch camera</string>
+    <string name="flash_on">Flash on</string>
+    <string name="flash_off">Flash off</string>
+    <string name="pause_audio">Pause recording</string>
+    <string name="resume_audio">Resume recording</string>
+    <string name="recording_duration">%1$02d:%2$02d</string>
 </resources>
