@@ -13,8 +13,8 @@ android {
     applicationId = "com.samr.social"
     minSdk = 24
     targetSdk = 36
-    versionCode = 6
-    versionName = "0.6.0-preview"
+    versionCode = 7
+    versionName = "0.7.0-preview"
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
