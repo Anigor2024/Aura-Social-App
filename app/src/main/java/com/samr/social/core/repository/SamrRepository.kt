@@ -2,6 +2,8 @@ package com.samr.social.core.repository
 
 import com.samr.social.core.model.CatchUpSummary
 import com.samr.social.core.model.Clip
+import com.samr.social.core.model.ClipComment
+import com.samr.social.core.model.EchoNote
 import com.samr.social.core.model.Community
 import com.samr.social.core.model.Conversation
 import com.samr.social.core.model.DirectMessage
@@ -203,6 +205,41 @@ class SamrRepository {
         )
     )
     val stories: StateFlow<List<Story>> = _stories.asStateFlow()
+
+    private val _echoNotes = MutableStateFlow(
+        listOf(
+            EchoNote(
+                id = "echo_noura",
+                author = _currentUser.value,
+                text = "أختبر تفاصيل واجهة جديدة اليوم ✦",
+                emoji = "✦",
+                timestampLabel = "الآن",
+                isMine = true
+            ),
+            EchoNote(
+                id = "echo_aziz",
+                author = aziz,
+                text = "Compose + قهوة = تركيز",
+                emoji = "☕",
+                timestampLabel = "18 د"
+            ),
+            EchoNote(
+                id = "echo_faisal",
+                author = faisal,
+                text = "الضوء في العلا اليوم استثنائي",
+                emoji = "☀",
+                timestampLabel = "42 د"
+            ),
+            EchoNote(
+                id = "echo_reem",
+                author = reem,
+                text = "أبحث عن خامات مستدامة جديدة",
+                emoji = "◌",
+                timestampLabel = "1 س"
+            )
+        )
+    )
+    val echoNotes: StateFlow<List<EchoNote>> = _echoNotes.asStateFlow()
 
     // Posts (المنشورات الاجتماعية الواقعية)
     private val _posts = MutableStateFlow(
@@ -406,6 +443,26 @@ class SamrRepository {
     )
     val clips: StateFlow<List<Clip>> = _clips.asStateFlow()
 
+    private val _clipComments = MutableStateFlow(
+        listOf(
+            ClipComment(
+                id = "clip_comment_1",
+                clipId = "clip_2",
+                author = aziz,
+                text = "الانتقالات هنا نظيفة جدًا، خصوصًا حركة الطبقات.",
+                timestampLabel = "9 د"
+            ),
+            ClipComment(
+                id = "clip_comment_2",
+                clipId = "clip_1",
+                author = reem,
+                text = "المشهد والضوء رائعان فعلًا.",
+                timestampLabel = "21 د"
+            )
+        )
+    )
+    val clipComments: StateFlow<List<ClipComment>> = _clipComments.asStateFlow()
+
     // Direct Messages & Conversations
     private val _conversations = MutableStateFlow(
         listOf(
@@ -546,6 +603,18 @@ class SamrRepository {
         }
     }
 
+    fun toggleResonance(postId: String) {
+        _posts.value = _posts.value.map { post ->
+            if (post.id == postId) {
+                val resonated = !post.isResonated
+                post.copy(
+                    isResonated = resonated,
+                    resonanceCount = if (resonated) post.resonanceCount + 1 else maxOf(0, post.resonanceCount - 1)
+                )
+            } else post
+        }
+    }
+
     fun toggleBookmark(postId: String) {
         _posts.value = _posts.value.map { post ->
             if (post.id == postId) post.copy(isBookmarked = !post.isBookmarked) else post
@@ -576,6 +645,9 @@ class SamrRepository {
         }
         _stories.value = _stories.value.map { story ->
             story.copy(author = toggleUser(story.author))
+        }
+        _echoNotes.value = _echoNotes.value.map { note ->
+            note.copy(author = toggleUser(note.author))
         }
         _clips.value = _clips.value.map { clip ->
             clip.copy(author = toggleUser(clip.author))
@@ -659,6 +731,51 @@ class SamrRepository {
         }
     }
 
+    fun toggleClipSave(clipId: String) {
+        _clips.value = _clips.value.map { clip ->
+            if (clip.id == clipId) clip.copy(isSaved = !clip.isSaved) else clip
+        }
+    }
+
+    fun addClipComment(clipId: String, text: String) {
+        if (text.isBlank()) return
+        val comment = ClipComment(
+            id = "clip_comment_${UUID.randomUUID().toString().take(8)}",
+            clipId = clipId,
+            author = _currentUser.value,
+            text = text.trim()
+        )
+        _clipComments.value = listOf(comment) + _clipComments.value
+        _clips.value = _clips.value.map { clip ->
+            if (clip.id == clipId) clip.copy(commentsCount = clip.commentsCount + 1) else clip
+        }
+    }
+
+    fun deleteClipComment(commentId: String) {
+        val comment = _clipComments.value.firstOrNull { it.id == commentId } ?: return
+        _clipComments.value = _clipComments.value.filterNot { it.id == commentId }
+        _clips.value = _clips.value.map { clip ->
+            if (clip.id == comment.clipId) clip.copy(commentsCount = maxOf(0, clip.commentsCount - 1)) else clip
+        }
+    }
+
+    fun setEcho(text: String, emoji: String) {
+        if (text.isBlank()) return
+        val note = EchoNote(
+            id = "echo_noura",
+            author = _currentUser.value,
+            text = text.trim(),
+            emoji = emoji.trim().ifBlank { "✦" },
+            timestampLabel = "الآن",
+            isMine = true
+        )
+        _echoNotes.value = listOf(note) + _echoNotes.value.filterNot { it.isMine }
+    }
+
+    fun deleteMyEcho() {
+        _echoNotes.value = _echoNotes.value.filterNot { it.isMine }
+    }
+
     fun updateProfile(
         displayName: String,
         username: String,
@@ -682,6 +799,15 @@ class SamrRepository {
         }
         _clips.value = _clips.value.map { clip ->
             if (clip.author.id == updated.id) clip.copy(author = updated) else clip
+        }
+        _echoNotes.value = _echoNotes.value.map { note ->
+            if (note.author.id == updated.id) note.copy(author = updated) else note
+        }
+        _comments.value = _comments.value.map { comment ->
+            if (comment.author.id == updated.id) comment.copy(author = updated) else comment
+        }
+        _clipComments.value = _clipComments.value.map { comment ->
+            if (comment.author.id == updated.id) comment.copy(author = updated) else comment
         }
     }
 
