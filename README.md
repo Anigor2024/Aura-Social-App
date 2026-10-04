@@ -4,6 +4,20 @@
 
 ## الحالة الحالية
 
+### SAMR 0.6.0 — 50+ Product & UX Upgrades
+- Content Hub للمسودات والمنشورات المجدولة والاستكمال والنشر الفوري
+- Composer احترافي: جدولة، Location، Alt Text، عداد أحرف، Draft workflow
+- Experience Center: Autoplay، Reduced Motion، Compact Feed، Haptics، Media Quality، Read Receipts
+- Post moderation: Hide، Report، Mute Creator، metadata وAccessibility
+- Feed ذكي يحترم المحتوى المخفي والحسابات المكتومة وكثافة العرض
+- Comment likes وStory viewed states وSocial Pulse
+- Discover: Recent Searches، Clear History، People/Posts/Communities filters
+- Profile: Links قابلة للفتح، Achievements، Content Hub
+- Messaging: Pin/Mute conversations، Unread filter، conversation search، thread search، replies، reactions، read handling
+- Activity Center: All/Unread/Social/System filters
+- Majlis: live applause and heart reactions مع counters
+- عشرات تحسينات الحالات البصرية، التفاعل، الـmicro UX، وإدارة المحتوى
+
 ### SAMR 0.5.0
 - Polls تفاعلية داخل المنشورات مع التصويت والنتائج الحية
 - مجالس سَمَر: غرف حوار مباشر وفعاليات قادمة وتصنيفات وهوية عربية حديثة
@@ -54,7 +68,7 @@
 - Application ID: com.samr.social
 - Minimum SDK: 24
 - Target SDK: 36
-- Preview version: 0.5.0
+- Preview version: 0.6.0
 
 ## CI
 
