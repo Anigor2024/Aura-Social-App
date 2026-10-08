@@ -1,0 +1,17 @@
+name: nubra_mobile
+description: NUBRA offline Android preview, sample clips only.
+publish_to: none
+version: 0.1.0+2
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  video_player: ^2.9.2
+  file_picker: ^8.3.7
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/demo1.mp4
+    - assets/demo2.mp4
+    - assets/demo3.mp4
