@@ -30,7 +30,7 @@
         </provider>
 
         <activity
-            android:name=".MainActivity"
+            android:name=".NubraPreviewActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize"
             android:label="@string/app_name"
