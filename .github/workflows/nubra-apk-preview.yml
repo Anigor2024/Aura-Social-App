@@ -18,6 +18,7 @@ jobs:
           flutter create --platforms=android --project-name=nubra_mobile --org=app.nubra /tmp/nubra_mobile
           cp nubra_preview/pubspec.yaml /tmp/nubra_mobile/pubspec.yaml
           cp nubra_preview/lib/main.dart /tmp/nubra_mobile/lib/main.dart
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
           mkdir -p /tmp/nubra_mobile/assets
           ffmpeg -hide_banner -loglevel error -y -f lavfi -i testsrc2=size=360x640:rate=15 -t 7 -c:v libx264 -preset ultrafast -crf 33 -pix_fmt yuv420p /tmp/nubra_mobile/assets/demo1.mp4
           ffmpeg -hide_banner -loglevel error -y -f lavfi -i smptebars=size=360x640:rate=15 -t 7 -c:v libx264 -preset ultrafast -crf 33 -pix_fmt yuv420p /tmp/nubra_mobile/assets/demo2.mp4
