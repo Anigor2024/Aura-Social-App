@@ -10,11 +10,11 @@ android {
   compileSdk = 36
 
   defaultConfig {
-    applicationId = "com.samr.social"
+    applicationId = "app.nubra.preview"
     minSdk = 24
     targetSdk = 36
-    versionCode = 7
-    versionName = "0.7.0-preview"
+    versionCode = 1
+    versionName = "0.1.0-preview"
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
