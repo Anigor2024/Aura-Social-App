@@ -1,0 +1,35 @@
+name: NUBRA APK Preview
+on:
+  push:
+    branches: [nubra-apk-preview]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.35.7'
+      - name: Build Android APK
+        run: |
+          flutter create --platforms=android --project-name=nubra_mobile --org=app.nubra /tmp/nubra_mobile
+          cp nubra_preview/pubspec.yaml /tmp/nubra_mobile/pubspec.yaml
+          cp nubra_preview/lib/main.dart /tmp/nubra_mobile/lib/main.dart
+          mkdir -p /tmp/nubra_mobile/assets
+          ffmpeg -hide_banner -loglevel error -y -f lavfi -i testsrc2=size=360x640:rate=15 -t 7 -c:v libx264 -preset ultrafast -crf 33 -pix_fmt yuv420p /tmp/nubra_mobile/assets/demo1.mp4
+          ffmpeg -hide_banner -loglevel error -y -f lavfi -i smptebars=size=360x640:rate=15 -t 7 -c:v libx264 -preset ultrafast -crf 33 -pix_fmt yuv420p /tmp/nubra_mobile/assets/demo2.mp4
+          ffmpeg -hide_banner -loglevel error -y -f lavfi -i mandelbrot=size=360x640:rate=15 -t 7 -c:v libx264 -preset ultrafast -crf 33 -pix_fmt yuv420p /tmp/nubra_mobile/assets/demo3.mp4
+          cd /tmp/nubra_mobile
+          flutter pub get
+          flutter analyze --no-fatal-infos
+          flutter build apk --release
+          mkdir -p "$GITHUB_WORKSPACE/nubra-apk"
+          cp build/app/outputs/flutter-apk/app-release.apk "$GITHUB_WORKSPACE/nubra-apk/nubra-preview.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nubra-android-apk
+          path: nubra-apk/nubra-preview.apk
+          retention-days: 14
