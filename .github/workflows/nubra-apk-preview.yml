@@ -24,6 +24,7 @@ jobs:
           ffmpeg -hide_banner -loglevel error -y -f lavfi -i smptebars=size=360x640:rate=15 -t 7 -c:v libx264 -preset ultrafast -crf 33 -pix_fmt yuv420p /tmp/nubra_mobile/assets/demo2.mp4
           ffmpeg -hide_banner -loglevel error -y -f lavfi -i mandelbrot=size=360x640:rate=15 -t 7 -c:v libx264 -preset ultrafast -crf 33 -pix_fmt yuv420p /tmp/nubra_mobile/assets/demo3.mp4
           cd /tmp/nubra_mobile
+          rm -rf test analysis_options.yaml
           flutter pub get
           flutter analyze --no-fatal-infos
           flutter build apk --release
